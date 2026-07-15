@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ student.name }} · LecturerHub{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-2">
+    <h1 class="text-2xl font-semibold">{{ student.name }}</h1>
+    <a href="{% url 'supervision:student_list' %}" class="text-sm text-blue-600 hover:underline">&larr; Back to students</a>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-6">
+    {{ student.nim }} · {{ student.get_level_display }} · {{ student.get_status_display }}
+    {% if student.thesis_title %} · {{ student.thesis_title }}{% endif %}
+</p>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+        <h2 class="font-semibold mb-3">Add milestone</h2>
+        <form method="post" action="{% url 'supervision:milestone_create' student.pk %}" class="space-y-3">
+            {% csrf_token %}
+            {{ milestone_form.as_p }}
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Add milestone</button>
+        </form>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+        <h2 class="font-semibold mb-3">Log a meeting</h2>
+        <form method="post" action="{% url 'supervision:log_create' student.pk %}" class="space-y-3">
+            {% csrf_token %}
+            {{ log_form.as_p }}
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Add log</button>
+        </form>
+    </div>
+</div>
+
+<h2 class="font-semibold mb-3">Timeline</h2>
+<div class="space-y-3">
+    {% for entry in timeline %}
+    <div id="{{ entry.kind }}-row-{{ entry.object.pk }}" class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 flex justify-between items-start">
+        <div>
+            <div class="text-xs text-slate-400">{{ entry.date }}</div>
+            {% if entry.kind == "milestone" %}
+            <div class="font-medium">Milestone: {{ entry.object.name }}</div>
+            {% if entry.object.is_overdue %}<span class="text-xs text-red-600">Overdue</span>{% elif entry.object.completed_date %}<span class="text-xs text-green-600">Completed</span>{% endif %}
+            {% if entry.object.notes %}<div class="text-sm text-slate-500 dark:text-slate-400">{{ entry.object.notes }}</div>{% endif %}
+            {% else %}
+            <div class="font-medium">Supervision log ({{ entry.object.get_mode_display }})</div>
+            <div class="text-sm text-slate-500 dark:text-slate-400">{{ entry.object.summary }}</div>
+            {% if entry.object.next_action %}<div class="text-sm text-slate-400">Next: {{ entry.object.next_action }}</div>{% endif %}
+            {% endif %}
+        </div>
+        <button
+            hx-post="{% if entry.kind == 'milestone' %}{% url 'supervision:milestone_delete' entry.object.pk %}{% else %}{% url 'supervision:log_delete' entry.object.pk %}{% endif %}"
+            hx-target="#{{ entry.kind }}-row-{{ entry.object.pk }}"
+            hx-swap="outerHTML" hx-confirm="Delete this entry?"
+            class="text-slate-400 hover:text-red-600 text-sm">Delete</button>
+    </div>
+    {% empty %}
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-8 text-center text-slate-500 dark:text-slate-400">No milestones or logs yet.</div>
+    {% endfor %}
+</div>
+{% endblock %}

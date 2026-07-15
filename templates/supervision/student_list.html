@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Supervision · LecturerHub{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-semibold">Supervision</h1>
+    <a href="{% url 'supervision:student_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Add student</a>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
+    {% if students %}
+    <table class="w-full text-sm">
+        <thead class="bg-slate-50 dark:bg-slate-700 text-left text-slate-500 dark:text-slate-300">
+            <tr>
+                <th class="px-4 py-2">Name</th>
+                <th class="px-4 py-2">NIM</th>
+                <th class="px-4 py-2">Level</th>
+                <th class="px-4 py-2">Status</th>
+                <th class="px-4 py-2">Overdue milestones</th>
+                <th class="px-4 py-2"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr id="row-{{ student.pk }}" class="border-t border-slate-100 dark:border-slate-700">
+                <td class="px-4 py-2"><a href="{% url 'supervision:student_timeline' student.pk %}" class="text-blue-600 hover:underline">{{ student.name }}</a></td>
+                <td class="px-4 py-2">{{ student.nim }}</td>
+                <td class="px-4 py-2">{{ student.get_level_display }}</td>
+                <td class="px-4 py-2">{{ student.get_status_display }}</td>
+                <td class="px-4 py-2">{{ student.overdue_milestone_count }}</td>
+                <td class="px-4 py-2 text-right space-x-2">
+                    <a href="{% url 'supervision:student_update' student.pk %}" class="text-slate-500 hover:text-blue-600">Edit</a>
+                    <button hx-post="{% url 'supervision:student_delete' student.pk %}" hx-target="#row-{{ student.pk }}"
+                            hx-swap="outerHTML" hx-confirm="Delete this student?"
+                            class="text-slate-500 hover:text-red-600">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="p-8 text-center text-slate-500 dark:text-slate-400">No supervised students yet.</div>
+    {% endif %}
+</div>
+{% endblock %}
