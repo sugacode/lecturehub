@@ -1,8 +1,10 @@
 from django.db import models
 
+from apps.documents.models import Document
+
 
 class Grant(models.Model):
-    """A research grant. Deliverables and full CRUD UI are added in Phase 6."""
+    """A research grant with role, funding, and lifecycle status."""
 
     class Role(models.TextChoices):
         PI = "pi", "PI"
@@ -33,3 +35,32 @@ class Grant(models.Model):
 
     def __str__(self) -> str:
         return self.title
+
+    @property
+    def is_active(self) -> bool:
+        return self.status in (self.Status.AWARDED, self.Status.ACTIVE)
+
+
+class Deliverable(models.Model):
+    """A required output of a grant (report, publication, prototype, or IP)."""
+
+    class DeliverableType(models.TextChoices):
+        REPORT = "report", "Report"
+        PUBLICATION = "publication", "Publication"
+        PROTOTYPE = "prototype", "Prototype"
+        IP = "ip", "Intellectual Property"
+
+    grant = models.ForeignKey(Grant, on_delete=models.CASCADE, related_name="deliverables")
+    name = models.CharField(max_length=255)
+    type = models.CharField(max_length=20, choices=DeliverableType.choices)
+    due_date = models.DateField()
+    completed = models.BooleanField(default=False)
+    document = models.ForeignKey(
+        Document, on_delete=models.SET_NULL, blank=True, null=True, related_name="deliverables"
+    )
+
+    class Meta:
+        ordering = ["due_date"]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.grant.title})"
