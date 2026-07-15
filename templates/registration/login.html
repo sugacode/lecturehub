@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Log in · LecturerHub{% endblock %}
+{% block public_content %}
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-8 w-full max-w-sm">
+    <h1 class="text-xl font-semibold mb-6 text-center">LecturerHub</h1>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Log in</button>
+    </form>
+</div>
+{% endblock %}

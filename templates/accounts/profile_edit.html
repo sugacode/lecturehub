@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Profile · LecturerHub{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">Profile</h1>
+<form method="post" enctype="multipart/form-data" class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 space-y-4 max-w-2xl">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Save</button>
+</form>
+
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 mt-6 max-w-2xl">
+    <h2 class="font-semibold mb-2">Public pages</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mb-2">Unlisted slug: <code>{{ profile.public_slug }}</code></p>
+    <form method="post" action="{% url 'accounts:regenerate_slug' %}">
+        {% csrf_token %}
+        <button type="submit" class="text-sm text-blue-600 hover:underline">Regenerate public link</button>
+    </form>
+</div>
+{% endblock %}

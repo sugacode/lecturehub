@@ -28,3 +28,19 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
+
+# Python / Django
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+db.sqlite3
+staticfiles/
+media/*
+!media/.gitkeep
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+

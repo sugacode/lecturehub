@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" x-data="{ darkMode: $cookie('dark_mode') === 'true', sidebarOpen: false }"
+      x-init="$watch('darkMode', v => $cookie('dark_mode', v))"
+      :class="{ dark: darkMode }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LecturerHub{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <script defer src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
+    <script>
+        function getCookie(name) {
+            const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+            return match ? match.pop() : '';
+        }
+        document.addEventListener('alpine:init', () => {
+            Alpine.magic('cookie', () => (name, value) => {
+                if (value === undefined) return getCookie(name);
+                document.cookie = `${name}=${value};path=/;max-age=31536000`;
+            });
+        });
+    </script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen">
+{% if user.is_authenticated %}
+<div class="flex min-h-screen">
+    <aside class="hidden md:flex md:flex-col w-64 bg-slate-800 text-white shrink-0">
+        <div class="px-6 py-5 text-xl font-semibold border-b border-slate-700">LecturerHub</div>
+        <nav class="flex-1 px-2 py-4 space-y-1">
+            {% for item in sidebar_items %}
+            <a href="{% url item.url_name %}" class="block px-4 py-2 rounded-lg hover:bg-slate-700 transition">{{ item.label }}</a>
+            {% endfor %}
+        </nav>
+        <div class="px-4 py-4 border-t border-slate-700">
+            <button @click="darkMode = !darkMode" class="text-sm text-slate-300 hover:text-white">Toggle dark mode</button>
+            <form action="{% url 'logout' %}" method="post" class="mt-2">
+                {% csrf_token %}
+                <button type="submit" class="text-sm text-slate-300 hover:text-white">Log out</button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="md:hidden bg-slate-800 text-white flex items-center justify-between px-4 py-3">
+            <span class="font-semibold">LecturerHub</span>
+            <button @click="sidebarOpen = !sidebarOpen">Menu</button>
+        </header>
+        <div x-show="sidebarOpen" class="md:hidden bg-slate-800 text-white px-4 py-2 space-y-1">
+            {% for item in sidebar_items %}
+            <a href="{% url item.url_name %}" class="block py-2">{{ item.label }}</a>
+            {% endfor %}
+        </div>
+
+        <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-3 flex items-center justify-between">
+            <form action="{% url 'dashboard:search' %}" method="get" class="flex-1 max-w-md">
+                <input type="search" name="q" placeholder="Search publications, students, documents, events..."
+                       class="w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-1.5 text-sm">
+            </form>
+        </header>
+
+        <main class="flex-1 p-6" id="main-content">
+            {% for message in messages %}
+            <div class="mb-4 rounded-lg px-4 py-2 text-sm
+                {% if message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100
+                {% elif message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100
+                {% else %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% else %}
+<main class="min-h-screen flex items-center justify-center">
+    {% block public_content %}{% endblock %}
+</main>
+{% endif %}
+</body>
+</html>
