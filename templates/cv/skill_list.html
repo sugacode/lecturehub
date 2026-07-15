@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Skills · LecturerHub{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-4">CV</h1>
+{% include "cv/_nav.html" with active="skill" %}
+<div class="flex justify-end mb-4">
+    <a href="{% url 'cv:skill_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Add skill</a>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
+    {% if skills %}
+    <table class="w-full text-sm">
+        <thead class="bg-slate-50 dark:bg-slate-700 text-left text-slate-500 dark:text-slate-300">
+            <tr>
+                <th class="px-4 py-2">Name</th>
+                <th class="px-4 py-2">Category</th>
+                <th class="px-4 py-2">Proficiency</th>
+                <th class="px-4 py-2"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for skill in skills %}
+            <tr id="row-{{ skill.pk }}" class="border-t border-slate-100 dark:border-slate-700">
+                <td class="px-4 py-2">{{ skill.name }}</td>
+                <td class="px-4 py-2">{{ skill.get_category_display }}</td>
+                <td class="px-4 py-2">{{ skill.proficiency }}/5</td>
+                <td class="px-4 py-2 text-right space-x-2">
+                    <a href="{% url 'cv:skill_update' skill.pk %}" class="text-slate-500 hover:text-blue-600">Edit</a>
+                    <button hx-post="{% url 'cv:skill_delete' skill.pk %}" hx-target="#row-{{ skill.pk }}"
+                            hx-swap="outerHTML" hx-confirm="Delete this skill?"
+                            class="text-slate-500 hover:text-red-600">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="p-8 text-center text-slate-500 dark:text-slate-400">No skills yet.</div>
+    {% endif %}
+</div>
+{% endblock %}

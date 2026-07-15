@@ -19,15 +19,36 @@
             const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
             return match ? match.pop() : '';
         }
+        document.addEventListener('htmx:configRequest', (e) => {
+            e.detail.headers['X-CSRFToken'] = getCookie('csrftoken');
+        });
         document.addEventListener('alpine:init', () => {
             Alpine.magic('cookie', () => (name, value) => {
                 if (value === undefined) return getCookie(name);
                 document.cookie = `${name}=${value};path=/;max-age=31536000`;
             });
+            Alpine.data('toaster', () => ({
+                toasts: [],
+                init() {
+                    document.body.addEventListener('toast', (e) => {
+                        const id = Date.now();
+                        this.toasts.push({ id, message: e.detail.message, level: e.detail.level || 'success' });
+                        setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 4000);
+                    });
+                },
+            }));
         });
     </script>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen">
+{% csrf_token %}
+<div x-data="toaster" class="fixed top-4 right-4 z-50 space-y-2">
+    <template x-for="t in toasts" :key="t.id">
+        <div class="rounded-lg px-4 py-2 text-sm shadow-lg text-white"
+             :class="t.level === 'error' ? 'bg-red-600' : 'bg-green-600'"
+             x-text="t.message"></div>
+    </template>
+</div>
 {% if user.is_authenticated %}
 <div class="flex min-h-screen">
     <aside class="hidden md:flex md:flex-col w-64 bg-slate-800 text-white shrink-0">

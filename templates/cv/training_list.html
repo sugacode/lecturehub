@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Training · LecturerHub{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-4">CV</h1>
+{% include "cv/_nav.html" with active="training" %}
+<div class="flex justify-end mb-4">
+    <a href="{% url 'cv:training_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Add training</a>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
+    {% if trainings %}
+    <table class="w-full text-sm">
+        <thead class="bg-slate-50 dark:bg-slate-700 text-left text-slate-500 dark:text-slate-300">
+            <tr>
+                <th class="px-4 py-2">Name</th>
+                <th class="px-4 py-2">Provider</th>
+                <th class="px-4 py-2">Date</th>
+                <th class="px-4 py-2">Expiry</th>
+                <th class="px-4 py-2"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for training in trainings %}
+            <tr id="row-{{ training.pk }}" class="border-t border-slate-100 dark:border-slate-700">
+                <td class="px-4 py-2">{{ training.name }}</td>
+                <td class="px-4 py-2">{{ training.provider }}</td>
+                <td class="px-4 py-2">{{ training.date }}</td>
+                <td class="px-4 py-2">{{ training.expiry_date|default:"—" }}</td>
+                <td class="px-4 py-2 text-right space-x-2">
+                    <a href="{% url 'cv:training_update' training.pk %}" class="text-slate-500 hover:text-blue-600">Edit</a>
+                    <button hx-post="{% url 'cv:training_delete' training.pk %}" hx-target="#row-{{ training.pk }}"
+                            hx-swap="outerHTML" hx-confirm="Delete this training record?"
+                            class="text-slate-500 hover:text-red-600">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="p-8 text-center text-slate-500 dark:text-slate-400">No training records yet.</div>
+    {% endif %}
+</div>
+{% endblock %}
