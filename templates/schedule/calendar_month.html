@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Schedule · LecturerHub{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-4">Schedule</h1>
+{% include "schedule/_nav.html" with active="month" %}
+
+<div class="flex items-center justify-between mb-4">
+    <a href="?month={{ month_offset|add:"-1" }}" class="text-sm text-blue-600 hover:underline">&larr; Previous month</a>
+    <span class="text-sm font-medium">{{ month_name }}</span>
+    <a href="?month={{ month_offset|add:"1" }}" class="text-sm text-blue-600 hover:underline">Next month &rarr;</a>
+</div>
+
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
+    <table class="w-full text-sm table-fixed">
+        <thead class="bg-slate-50 dark:bg-slate-700">
+            <tr>
+                <th class="px-2 py-2">Mon</th><th class="px-2 py-2">Tue</th><th class="px-2 py-2">Wed</th>
+                <th class="px-2 py-2">Thu</th><th class="px-2 py-2">Fri</th><th class="px-2 py-2">Sat</th><th class="px-2 py-2">Sun</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for week in weeks %}
+            <tr class="border-t border-slate-100 dark:border-slate-700 align-top">
+                {% for cell in week %}
+                <td class="px-2 py-2 h-24">
+                    {% if cell %}
+                    <div class="text-xs text-slate-400 mb-1">{{ cell.day }}</div>
+                    {% for event in cell.events %}
+                    <div class="text-xs bg-amber-50 dark:bg-amber-900 rounded px-1 mb-1 truncate">{{ event.title }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

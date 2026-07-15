@@ -1,0 +1,9 @@
+<div class="flex flex-wrap gap-2 mb-6 text-sm">
+    <a href="{% url 'schedule:calendar_week' %}" class="px-3 py-1.5 rounded-lg {% if active == 'week' %}bg-blue-600 text-white{% else %}bg-white dark:bg-slate-800{% endif %}">Week</a>
+    <a href="{% url 'schedule:calendar_month' %}" class="px-3 py-1.5 rounded-lg {% if active == 'month' %}bg-blue-600 text-white{% else %}bg-white dark:bg-slate-800{% endif %}">Month</a>
+    <a href="{% url 'schedule:semester_list' %}" class="px-3 py-1.5 rounded-lg {% if active == 'semesters' %}bg-blue-600 text-white{% else %}bg-white dark:bg-slate-800{% endif %}">Semesters</a>
+    <a href="{% url 'schedule:course_list' %}" class="px-3 py-1.5 rounded-lg {% if active == 'courses' %}bg-blue-600 text-white{% else %}bg-white dark:bg-slate-800{% endif %}">Courses</a>
+    <a href="{% url 'schedule:assignment_list' %}" class="px-3 py-1.5 rounded-lg {% if active == 'assignments' %}bg-blue-600 text-white{% else %}bg-white dark:bg-slate-800{% endif %}">Assignments</a>
+    <a href="{% url 'schedule:event_list' %}" class="px-3 py-1.5 rounded-lg {% if active == 'events' %}bg-blue-600 text-white{% else %}bg-white dark:bg-slate-800{% endif %}">Events</a>
+    <a href="{% url 'schedule:export_ics' %}" class="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700">Export .ics</a>
+</div>
