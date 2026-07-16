@@ -5,33 +5,33 @@
 {% include "publications/_nav.html" with active="publications" %}
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4">
+    <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-4">
         <div class="text-2xl font-semibold">{{ stats.total }}</div>
-        <div class="text-sm text-slate-500 dark:text-slate-400">Total publications</div>
+        <div class="text-sm text-zinc-500 dark:text-zinc-400">Total publications</div>
     </div>
     {% for pub_type, count in stats.by_type.items %}
-    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4">
+    <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-4">
         <div class="text-2xl font-semibold">{{ count }}</div>
-        <div class="text-sm text-slate-500 dark:text-slate-400">{{ pub_type }}</div>
+        <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ pub_type }}</div>
     </div>
     {% endfor %}
 </div>
 
 <div class="flex justify-end gap-3 mb-4">
-    <a href="{% url 'publications:import_by_doi' %}" class="bg-slate-200 dark:bg-slate-700 rounded-lg px-4 py-2 text-sm font-medium">Import from DOI</a>
-    <a href="{% url 'publications:publication_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Add publication</a>
+    <a href="{% url 'publications:import_by_doi' %}" class="bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 rounded-lg px-4 py-2 text-sm font-medium transition-colors">Import from DOI</a>
+    <a href="{% url 'publications:publication_create' %}" class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add publication</a>
 </div>
 
-<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
+<div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 overflow-hidden">
     {% if publications %}
     <form method="post" action="{% url 'common:bulk_make_public' 'publications' 'publication' %}">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.path }}">
         <div class="px-4 py-2 flex justify-end">
-            <button type="submit" class="text-xs text-blue-600 hover:underline">Make selected public</button>
+            <button type="submit" class="text-xs text-indigo-600 hover:underline">Make selected public</button>
         </div>
     <table class="w-full text-sm">
-        <thead class="bg-slate-50 dark:bg-slate-700 text-left text-slate-500 dark:text-slate-300">
+        <thead class="bg-zinc-50 dark:bg-zinc-700 text-left text-zinc-500 dark:text-zinc-400">
             <tr>
                 <th class="px-4 py-2"></th>
                 <th class="px-4 py-2">Title</th>
@@ -46,7 +46,7 @@
         </thead>
         <tbody>
             {% for publication in publications %}
-            <tr id="row-{{ publication.pk }}" class="border-t border-slate-100 dark:border-slate-700">
+            <tr id="row-{{ publication.pk }}" class="border-t border-zinc-100 dark:border-zinc-700">
                 <td class="px-4 py-2"><input type="checkbox" name="selected" value="{{ publication.pk }}"></td>
                 <td class="px-4 py-2">{{ publication.title }}</td>
                 <td class="px-4 py-2">{{ publication.get_pub_type_display }}</td>
@@ -56,10 +56,10 @@
                 <td class="px-4 py-2">{{ publication.citation_count }}</td>
                 <td class="px-4 py-2">{% include "common/_public_toggle.html" with obj=publication app_label="publications" model_name="publication" %}</td>
                 <td class="px-4 py-2 text-right space-x-2">
-                    <a href="{% url 'publications:publication_update' publication.pk %}" class="text-slate-500 hover:text-blue-600">Edit</a>
+                    <a href="{% url 'publications:publication_update' publication.pk %}" class="text-zinc-500 hover:text-indigo-600">Edit</a>
                     <button hx-post="{% url 'publications:publication_delete' publication.pk %}" hx-target="#row-{{ publication.pk }}"
                             hx-swap="outerHTML" hx-confirm="Delete this publication?"
-                            class="text-slate-500 hover:text-red-600">Delete</button>
+                            class="text-zinc-500 hover:text-rose-600">Delete</button>
                 </td>
             </tr>
             {% endfor %}
@@ -67,7 +67,7 @@
     </table>
     </form>
     {% else %}
-    <div class="p-8 text-center text-slate-500 dark:text-slate-400">No publications yet.</div>
+    <div class="p-8 text-center text-zinc-500 dark:text-zinc-400">No publications yet.</div>
     {% endif %}
 </div>
 {% endblock %}

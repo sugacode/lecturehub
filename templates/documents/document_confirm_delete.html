@@ -2,12 +2,12 @@
 {% block title %}Delete document · LecturerHub{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-semibold mb-6">Delete document</h1>
-<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 max-w-xl">
+<div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-6 max-w-xl">
     <p class="mb-4">Are you sure you want to delete "{{ object }}"? This cannot be undone.</p>
     <form method="post">
         {% csrf_token %}
-        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Delete</button>
-        <a href="{% url 'documents:document_list' %}" class="text-sm text-slate-500 ml-3">Cancel</a>
+        <button type="submit" class="bg-rose-600 hover:bg-rose-500 text-white rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition-colors">Delete</button>
+        <a href="{% url 'documents:document_list' %}" class="text-sm text-zinc-500 ml-3">Cancel</a>
     </form>
 </div>
 {% endblock %}

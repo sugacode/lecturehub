@@ -13,7 +13,64 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; }</style>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        [x-cloak] { display: none !important; }
+
+        /* Django's {{ form.as_p }} emits bare, unstyled inputs — style them
+           globally so every form across the app looks consistent without
+           touching every forms.py widget. */
+        main p > label,
+        .form-card label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: rgb(63 63 70);
+            margin-bottom: 0.25rem;
+        }
+        .dark main p > label,
+        .dark .form-card label {
+            color: rgb(212 212 216);
+        }
+        main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+        main select,
+        main textarea,
+        .form-card input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+        .form-card select,
+        .form-card textarea {
+            display: block;
+            width: 100%;
+            max-width: 28rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgb(212 212 216);
+            background-color: white;
+            color: rgb(24 24 27);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .dark main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+        .dark main select,
+        .dark main textarea,
+        .dark .form-card input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+        .dark .form-card select,
+        .dark .form-card textarea {
+            background-color: rgb(39 39 42);
+            border-color: rgb(63 63 70);
+            color: rgb(244 244 245);
+        }
+        main input:focus, main select:focus, main textarea:focus,
+        .form-card input:focus, .form-card select:focus, .form-card textarea:focus {
+            outline: none;
+            border-color: rgb(99 102 241);
+            box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
+        }
+        main input[type="file"] { font-size: 0.875rem; color: rgb(113 113 122); }
+        .dark main input[type="file"] { color: rgb(161 161 170); }
+        main input[type="checkbox"], main input[type="radio"] { accent-color: rgb(79 70 229); }
+        main p { margin-bottom: 1rem; }
+    </style>
     <script>
         function getCookie(name) {
             const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
@@ -40,57 +97,76 @@
         });
     </script>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen">
+<body class="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 min-h-screen antialiased">
 {% csrf_token %}
 <div x-data="toaster" class="fixed top-4 right-4 z-50 space-y-2">
     <template x-for="t in toasts" :key="t.id">
-        <div class="rounded-lg px-4 py-2 text-sm shadow-lg text-white"
-             :class="t.level === 'error' ? 'bg-red-600' : 'bg-green-600'"
+        <div class="rounded-lg px-4 py-2.5 text-sm font-medium text-white shadow-lg ring-1 ring-black/5"
+             :class="t.level === 'error' ? 'bg-rose-600' : 'bg-emerald-600'"
              x-text="t.message"></div>
     </template>
 </div>
 {% if user.is_authenticated %}
 <div class="flex min-h-screen">
-    <aside class="hidden md:flex md:flex-col w-64 bg-slate-800 text-white shrink-0">
-        <div class="px-6 py-5 text-xl font-semibold border-b border-slate-700">LecturerHub</div>
-        <nav class="flex-1 px-2 py-4 space-y-1">
+    <aside class="hidden md:flex md:flex-col w-64 bg-zinc-900 text-zinc-100 shrink-0 ring-1 ring-white/5">
+        <div class="px-6 py-5 flex items-center gap-2.5 border-b border-white/5">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500 text-white font-bold text-sm">LH</span>
+            <span class="text-lg font-semibold tracking-tight text-white">LecturerHub</span>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
             {% for item in sidebar_items %}
-            <a href="{% url item.url_name %}" class="block px-4 py-2 rounded-lg hover:bg-slate-700 transition">{{ item.label }}</a>
+            <a href="{% url item.url_name %}"
+               class="group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-colors">
+                {% include "_nav_icon.html" with icon=item.icon %}
+                {{ item.label }}
+            </a>
             {% endfor %}
         </nav>
-        <div class="px-4 py-4 border-t border-slate-700">
-            <button @click="darkMode = !darkMode" class="text-sm text-slate-300 hover:text-white">Toggle dark mode</button>
-            <form action="{% url 'logout' %}" method="post" class="mt-2">
+        <div class="px-3 py-4 border-t border-white/5 space-y-0.5">
+            <button @click="darkMode = !darkMode"
+                    class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-colors">
+                <svg x-show="!darkMode" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
+                <svg x-show="darkMode" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
+                <span x-text="darkMode ? 'Light mode' : 'Dark mode'"></span>
+            </button>
+            <form action="{% url 'logout' %}" method="post">
                 {% csrf_token %}
-                <button type="submit" class="text-sm text-slate-300 hover:text-white">Log out</button>
+                <button type="submit" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0110.5 3h6a2.25 2.25 0 012.25 2.25v13.5a2.25 2.25 0 01-2.25 2.25h-6a2.25 2.25 0 01-2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" /></svg>
+                    Log out
+                </button>
             </form>
         </div>
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0">
-        <header class="md:hidden bg-slate-800 text-white flex items-center justify-between px-4 py-3">
-            <span class="font-semibold">LecturerHub</span>
-            <button @click="sidebarOpen = !sidebarOpen">Menu</button>
+        <header class="md:hidden bg-zinc-900 text-white flex items-center justify-between px-4 py-3 ring-1 ring-white/5">
+            <span class="flex items-center gap-2 font-semibold">
+                <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500 text-white font-bold text-xs">LH</span>
+                LecturerHub
+            </span>
+            <button @click="sidebarOpen = !sidebarOpen" class="text-zinc-300 hover:text-white">Menu</button>
         </header>
-        <div x-show="sidebarOpen" class="md:hidden bg-slate-800 text-white px-4 py-2 space-y-1">
+        <div x-show="sidebarOpen" x-cloak class="md:hidden bg-zinc-900 text-zinc-300 px-4 py-2 space-y-1">
             {% for item in sidebar_items %}
-            <a href="{% url item.url_name %}" class="block py-2">{{ item.label }}</a>
+            <a href="{% url item.url_name %}" class="block py-2 hover:text-white">{{ item.label }}</a>
             {% endfor %}
         </div>
 
-        <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-3 flex items-center justify-between">
-            <form action="{% url 'dashboard:search' %}" method="get" class="flex-1 max-w-md">
+        <header class="bg-white/80 dark:bg-zinc-900/80 backdrop-blur border-b border-zinc-200 dark:border-white/5 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+            <form action="{% url 'dashboard:search' %}" method="get" class="flex-1 max-w-md relative">
+                <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
                 <input type="search" name="q" placeholder="Search publications, students, documents, events..."
-                       class="w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-1.5 text-sm">
+                       class="w-full rounded-lg border-0 ring-1 ring-inset ring-zinc-200 dark:ring-zinc-700 dark:bg-zinc-800 pl-9 pr-3 py-1.5 text-sm placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 transition-shadow">
             </form>
         </header>
 
         <main class="flex-1 p-6" id="main-content">
             {% for message in messages %}
-            <div class="mb-4 rounded-lg px-4 py-2 text-sm
-                {% if message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100
-                {% elif message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100
-                {% else %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100{% endif %}">
+            <div class="mb-4 rounded-lg px-4 py-2.5 text-sm font-medium ring-1
+                {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20
+                {% elif message.tags == 'error' %}bg-rose-50 text-rose-800 ring-rose-600/20 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/20
+                {% else %}bg-indigo-50 text-indigo-800 ring-indigo-600/20 dark:bg-indigo-500/10 dark:text-indigo-200 dark:ring-indigo-500/20{% endif %}">
                 {{ message }}
             </div>
             {% endfor %}

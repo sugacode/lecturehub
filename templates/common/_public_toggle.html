@@ -1,6 +1,6 @@
 <button
     hx-post="{% url 'common:toggle_public' app_label model_name obj.pk %}"
     hx-swap="outerHTML"
-    class="px-2 py-0.5 rounded-full text-xs font-medium {% if obj.is_public %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100{% else %}bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300{% endif %}">
+    class="px-2 py-0.5 rounded-full text-xs font-medium {% if obj.is_public %}bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300{% else %}bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400{% endif %}">
     {% if obj.is_public %}Public{% else %}Private{% endif %}
 </button>

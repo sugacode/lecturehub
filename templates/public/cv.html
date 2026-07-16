@@ -13,19 +13,19 @@
      }">
 <div class="max-w-4xl mx-auto px-4 py-8">
 
-    <nav class="sticky top-0 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur z-10 flex flex-wrap gap-3 py-3 mb-6 text-sm border-b border-slate-200 dark:border-slate-700">
-        <a href="#profile" class="hover:text-blue-600">Profile</a>
-        <a href="#education" class="hover:text-blue-600">Education</a>
-        <a href="#positions" class="hover:text-blue-600">Positions</a>
-        <a href="#publications" class="hover:text-blue-600">Publications</a>
-        <a href="#grants" class="hover:text-blue-600">Grants</a>
-        <a href="#service" class="hover:text-blue-600">Service</a>
-        <a href="#achievements" class="hover:text-blue-600">Achievements</a>
-        <a href="#skills" class="hover:text-blue-600">Skills</a>
+    <nav class="sticky top-0 bg-zinc-50/95 dark:bg-zinc-950/95 backdrop-blur z-10 flex flex-wrap gap-3 py-3 mb-6 text-sm border-b border-zinc-200 dark:border-zinc-700">
+        <a href="#profile" class="hover:text-indigo-600">Profile</a>
+        <a href="#education" class="hover:text-indigo-600">Education</a>
+        <a href="#positions" class="hover:text-indigo-600">Positions</a>
+        <a href="#publications" class="hover:text-indigo-600">Publications</a>
+        <a href="#grants" class="hover:text-indigo-600">Grants</a>
+        <a href="#service" class="hover:text-indigo-600">Service</a>
+        <a href="#achievements" class="hover:text-indigo-600">Achievements</a>
+        <a href="#skills" class="hover:text-indigo-600">Skills</a>
         <span class="flex-1"></span>
-        <button @click="darkMode = !darkMode" class="text-slate-500 hover:text-blue-600">Toggle dark mode</button>
+        <button @click="darkMode = !darkMode" class="text-zinc-500 hover:text-indigo-600">Toggle dark mode</button>
         <a href="{% url 'cv:export' %}?style=academic{% if request.resolver_match.kwargs.slug %}&slug={{ request.resolver_match.kwargs.slug }}{% endif %}"
-           class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-3 py-1 font-medium">Download PDF</a>
+           class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-3 py-1 font-medium shadow-sm transition-colors">Download PDF</a>
     </nav>
 
     <section id="profile" class="mb-10 scroll-mt-20">
@@ -34,11 +34,11 @@
             <img src="{{ profile.photo.url }}" alt="{{ profile.full_name }}" class="w-24 h-24 rounded-full object-cover">
             {% endif %}
             <div>
-                <h1 class="text-3xl font-bold text-blue-700 dark:text-blue-400">
+                <h1 class="text-3xl font-bold text-indigo-700 dark:text-indigo-400">
                     {{ profile.title_prefix }} {{ profile.full_name }} {{ profile.title_suffix }}
                 </h1>
-                {% if profile.current_position %}<p class="text-slate-500 dark:text-slate-400">{{ profile.current_position }}</p>{% endif %}
-                <div class="mt-2 text-sm text-slate-600 dark:text-slate-300 space-x-3">
+                {% if profile.current_position %}<p class="text-zinc-500 dark:text-zinc-400">{{ profile.current_position }}</p>{% endif %}
+                <div class="mt-2 text-sm text-zinc-600 dark:text-zinc-400 space-x-3">
                     {% if profile.public_email %}<span>{{ profile.public_email }}</span>{% endif %}
                     {% if profile.show_phone_publicly and profile.phone %}<span>{{ profile.phone }}</span>{% endif %}
                     {% if profile.institution %}<span>{{ profile.institution }}</span>{% endif %}
@@ -47,55 +47,55 @@
                 </div>
             </div>
         </div>
-        {% if profile.bio %}<p class="mt-4 text-slate-700 dark:text-slate-300">{{ profile.bio }}</p>{% endif %}
+        {% if profile.bio %}<p class="mt-4 text-zinc-700 dark:text-zinc-400">{{ profile.bio }}</p>{% endif %}
     </section>
 
     <section id="education" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Education</h2>
+        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Education</h2>
         {% for edu in educations %}
         <div class="mb-4">
             <div class="flex justify-between">
                 <span class="font-medium">{{ edu.get_degree_level_display }} — {{ edu.program }}</span>
-                <span class="text-sm text-slate-400">{{ edu.start_year }}–{{ edu.end_year|default:"present" }}</span>
+                <span class="text-sm text-zinc-400">{{ edu.start_year }}–{{ edu.end_year|default:"present" }}</span>
             </div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">{{ edu.institution }}{% if edu.country %}, {{ edu.country }}{% endif %}</div>
+            <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ edu.institution }}{% if edu.country %}, {{ edu.country }}{% endif %}</div>
         </div>
         {% empty %}
-        <p class="text-slate-400 text-sm">No public education records.</p>
+        <p class="text-zinc-400 text-sm">No public education records.</p>
         {% endfor %}
     </section>
 
     <section id="positions" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Positions</h2>
+        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Positions</h2>
         {% for position in positions %}
         <div class="mb-4">
             <div class="flex justify-between">
                 <span class="font-medium">{{ position.title }}</span>
-                <span class="text-sm text-slate-400">{{ position.start_date }}–{{ position.end_date|default:"present" }}</span>
+                <span class="text-sm text-zinc-400">{{ position.start_date }}–{{ position.end_date|default:"present" }}</span>
             </div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">{{ position.organization }}</div>
+            <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ position.organization }}</div>
         </div>
         {% empty %}
-        <p class="text-slate-400 text-sm">No public position records.</p>
+        <p class="text-zinc-400 text-sm">No public position records.</p>
         {% endfor %}
     </section>
 
     <section id="publications" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Publications</h2>
+        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Publications</h2>
         <div class="flex flex-wrap gap-2 mb-4 text-sm">
-            <select x-model="pubType" class="rounded border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-2 py-1">
+            <select x-model="pubType" class="rounded border border-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 px-2 py-1">
                 <option value="">All types</option>
                 {% for value, label in pub_type_choices %}
                 <option value="{{ value }}">{{ label }}</option>
                 {% endfor %}
             </select>
-            <select x-model="pubYear" class="rounded border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-2 py-1">
+            <select x-model="pubYear" class="rounded border border-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 px-2 py-1">
                 <option value="">All years</option>
                 {% for year in publication_years %}
                 <option value="{{ year }}">{{ year }}</option>
                 {% endfor %}
             </select>
-            <select x-model="pubIndexing" class="rounded border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-2 py-1">
+            <select x-model="pubIndexing" class="rounded border border-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 px-2 py-1">
                 <option value="">All indexing</option>
                 {% for value, label in indexing_choices %}
                 <option value="{{ value }}">{{ label }}</option>
@@ -105,58 +105,58 @@
         {% for pub in all_publications %}
         <div x-show="matches('{{ pub.pub_type }}', '{{ pub.year }}', '{{ pub.indexing }}')" class="mb-3 text-sm">
             <div class="font-medium">{{ pub.title }}</div>
-            <div class="text-slate-500 dark:text-slate-400">
+            <div class="text-zinc-500 dark:text-zinc-400">
                 {{ pub.authors }} ({{ pub.year }}). <em>{{ pub.venue }}</em>.
-                <span class="text-xs bg-slate-100 dark:bg-slate-700 rounded px-1.5 py-0.5 ml-1">{{ pub.get_pub_type_display }}</span>
-                {% if pub.indexing != "none" %}<span class="text-xs bg-blue-50 dark:bg-blue-900 rounded px-1.5 py-0.5 ml-1">{{ pub.get_indexing_display }}</span>{% endif %}
+                <span class="text-xs bg-zinc-100 dark:bg-zinc-700 rounded px-1.5 py-0.5 ml-1">{{ pub.get_pub_type_display }}</span>
+                {% if pub.indexing != "none" %}<span class="text-xs bg-indigo-50 dark:bg-indigo-500/10 rounded px-1.5 py-0.5 ml-1">{{ pub.get_indexing_display }}</span>{% endif %}
             </div>
         </div>
         {% empty %}
-        <p class="text-slate-400 text-sm">No public publications.</p>
+        <p class="text-zinc-400 text-sm">No public publications.</p>
         {% endfor %}
     </section>
 
     <section id="grants" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Grants</h2>
+        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Grants</h2>
         {% for grant in grants %}
         <div class="mb-3 text-sm">
             <div class="font-medium">{{ grant.title }}</div>
-            <div class="text-slate-500 dark:text-slate-400">{{ grant.funder }} — {{ grant.get_role_display }} ({{ grant.start_date }}–{{ grant.end_date|default:"present" }})</div>
+            <div class="text-zinc-500 dark:text-zinc-400">{{ grant.funder }} — {{ grant.get_role_display }} ({{ grant.start_date }}–{{ grant.end_date|default:"present" }})</div>
         </div>
         {% empty %}
-        <p class="text-slate-400 text-sm">No public grants.</p>
+        <p class="text-zinc-400 text-sm">No public grants.</p>
         {% endfor %}
     </section>
 
     <section id="service" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Service</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mb-3">{{ active_student_count }} thesis student(s) currently supervised.</p>
+        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Service</h2>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-3">{{ active_student_count }} thesis student(s) currently supervised.</p>
         {% for service in community_services %}
-        <div class="mb-2 text-sm"><span class="font-medium">{{ service.title }}</span> <span class="text-slate-400">({{ service.date }})</span></div>
+        <div class="mb-2 text-sm"><span class="font-medium">{{ service.title }}</span> <span class="text-zinc-400">({{ service.date }})</span></div>
         {% endfor %}
         {% for role in organizational_roles %}
-        <div class="mb-2 text-sm"><span class="font-medium">{{ role.role }}</span>, {{ role.organization }} <span class="text-slate-400">({{ role.start_date }}–{{ role.end_date|default:"present" }})</span></div>
+        <div class="mb-2 text-sm"><span class="font-medium">{{ role.role }}</span>, {{ role.organization }} <span class="text-zinc-400">({{ role.start_date }}–{{ role.end_date|default:"present" }})</span></div>
         {% endfor %}
         {% if not community_services and not organizational_roles %}
-        <p class="text-slate-400 text-sm">No public service records.</p>
+        <p class="text-zinc-400 text-sm">No public service records.</p>
         {% endif %}
     </section>
 
     <section id="achievements" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Achievements</h2>
+        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Achievements</h2>
         {% for achievement in achievements %}
-        <div class="mb-2 text-sm"><span class="font-medium">{{ achievement.title }}</span>, {{ achievement.issuer }} <span class="text-slate-400">({{ achievement.date }})</span></div>
+        <div class="mb-2 text-sm"><span class="font-medium">{{ achievement.title }}</span>, {{ achievement.issuer }} <span class="text-zinc-400">({{ achievement.date }})</span></div>
         {% empty %}
-        <p class="text-slate-400 text-sm">No public achievements.</p>
+        <p class="text-zinc-400 text-sm">No public achievements.</p>
         {% endfor %}
     </section>
 
     <section id="skills" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Skills</h2>
+        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Skills</h2>
         {% for skill in skills %}
-        <span class="inline-block text-xs bg-slate-100 dark:bg-slate-700 rounded-full px-3 py-1 mr-1 mb-1">{{ skill.name }} ({{ skill.proficiency }}/5)</span>
+        <span class="inline-block text-xs bg-zinc-100 dark:bg-zinc-700 rounded-full px-3 py-1 mr-1 mb-1">{{ skill.name }} ({{ skill.proficiency }}/5)</span>
         {% empty %}
-        <p class="text-slate-400 text-sm">No public skills.</p>
+        <p class="text-zinc-400 text-sm">No public skills.</p>
         {% endfor %}
     </section>
 

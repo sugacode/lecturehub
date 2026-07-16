@@ -3,27 +3,27 @@
 {% block content %}
 <div class="flex items-center justify-between mb-2">
     <h1 class="text-2xl font-semibold">{{ grant.title }}</h1>
-    <a href="{% url 'research:grant_list' %}" class="text-sm text-blue-600 hover:underline">&larr; Back to grants</a>
+    <a href="{% url 'research:grant_list' %}" class="text-sm text-indigo-600 hover:underline">&larr; Back to grants</a>
 </div>
-<p class="text-sm text-slate-500 dark:text-slate-400 mb-6">
+<p class="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
     {{ grant.funder }} · {{ grant.get_role_display }} · {{ grant.get_status_display }}
     {% if grant.amount %} · {{ grant.currency }} {{ grant.amount }}{% endif %}
 </p>
 
-<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 mb-6 max-w-xl">
+<div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-6 mb-6 max-w-xl">
     <h2 class="font-semibold mb-3">Add deliverable</h2>
     <form method="post" action="{% url 'research:deliverable_create' grant.pk %}" class="space-y-3">
         {% csrf_token %}
         {{ deliverable_form.as_p }}
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Add deliverable</button>
+        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add deliverable</button>
     </form>
 </div>
 
 <h2 class="font-semibold mb-3">Deliverables</h2>
-<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
+<div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 overflow-hidden">
     {% if grant.deliverables.all %}
     <table class="w-full text-sm">
-        <thead class="bg-slate-50 dark:bg-slate-700 text-left text-slate-500 dark:text-slate-300">
+        <thead class="bg-zinc-50 dark:bg-zinc-700 text-left text-zinc-500 dark:text-zinc-400">
             <tr>
                 <th class="px-4 py-2">Name</th>
                 <th class="px-4 py-2">Type</th>
@@ -34,23 +34,23 @@
         </thead>
         <tbody>
             {% for deliverable in grant.deliverables.all %}
-            <tr id="deliverable-row-{{ deliverable.pk }}" class="border-t border-slate-100 dark:border-slate-700">
+            <tr id="deliverable-row-{{ deliverable.pk }}" class="border-t border-zinc-100 dark:border-zinc-700">
                 <td class="px-4 py-2">{{ deliverable.name }}</td>
                 <td class="px-4 py-2">{{ deliverable.get_type_display }}</td>
                 <td class="px-4 py-2">{{ deliverable.due_date }}</td>
                 <td class="px-4 py-2">{% if deliverable.completed %}Yes{% else %}No{% endif %}</td>
                 <td class="px-4 py-2 text-right space-x-2">
-                    <a href="{% url 'research:deliverable_update' deliverable.pk %}" class="text-slate-500 hover:text-blue-600">Edit</a>
+                    <a href="{% url 'research:deliverable_update' deliverable.pk %}" class="text-zinc-500 hover:text-indigo-600">Edit</a>
                     <button hx-post="{% url 'research:deliverable_delete' deliverable.pk %}" hx-target="#deliverable-row-{{ deliverable.pk }}"
                             hx-swap="outerHTML" hx-confirm="Delete this deliverable?"
-                            class="text-slate-500 hover:text-red-600">Delete</button>
+                            class="text-zinc-500 hover:text-rose-600">Delete</button>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-    <div class="p-8 text-center text-slate-500 dark:text-slate-400">No deliverables yet.</div>
+    <div class="p-8 text-center text-zinc-500 dark:text-zinc-400">No deliverables yet.</div>
     {% endif %}
 </div>
 {% endblock %}

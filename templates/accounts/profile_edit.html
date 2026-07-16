@@ -2,25 +2,25 @@
 {% block title %}Profile · LecturerHub{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-semibold mb-6">Profile</h1>
-<form method="post" enctype="multipart/form-data" class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 space-y-4 max-w-2xl">
+<form method="post" enctype="multipart/form-data" class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-6 space-y-4 max-w-2xl">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Save</button>
+    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Save</button>
 </form>
 
-<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 mt-6 max-w-2xl">
+<div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-6 mt-6 max-w-2xl">
     <h2 class="font-semibold mb-2">Public pages</h2>
-    <p class="text-sm text-slate-500 dark:text-slate-400 mb-2">
+    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-2">
         Mode: <code>{{ public_pages_mode }}</code>
         {% if public_pages_mode == "unlisted" %}— only reachable at the links below, using this slug: <code>{{ profile.public_slug }}</code>{% endif %}
     </p>
     <ul class="text-sm space-y-1 mb-3">
-        <li><a href="{{ public_cv_url }}" target="_blank" class="text-blue-600 hover:underline">Public CV page</a></li>
-        <li><a href="{{ public_schedule_url }}" target="_blank" class="text-blue-600 hover:underline">Public schedule page</a></li>
+        <li><a href="{{ public_cv_url }}" target="_blank" class="text-indigo-600 hover:underline">Public CV page</a></li>
+        <li><a href="{{ public_schedule_url }}" target="_blank" class="text-indigo-600 hover:underline">Public schedule page</a></li>
     </ul>
     <form method="post" action="{% url 'accounts:regenerate_slug' %}">
         {% csrf_token %}
-        <button type="submit" class="text-sm text-blue-600 hover:underline">Regenerate public link</button>
+        <button type="submit" class="text-sm text-indigo-600 hover:underline">Regenerate public link</button>
     </form>
 </div>
 {% endblock %}

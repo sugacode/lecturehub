@@ -4,33 +4,33 @@
 <h1 class="text-2xl font-semibold mb-4">Schedule</h1>
 {% include "schedule/_nav.html" with active="courses" %}
 <div class="flex justify-end mb-4">
-    <a href="{% url 'schedule:course_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Add course</a>
+    <a href="{% url 'schedule:course_create' %}" class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add course</a>
 </div>
-<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
+<div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 overflow-hidden">
     {% if courses %}
     <table class="w-full text-sm">
-        <thead class="bg-slate-50 dark:bg-slate-700 text-left text-slate-500 dark:text-slate-300">
+        <thead class="bg-zinc-50 dark:bg-zinc-700 text-left text-zinc-500 dark:text-zinc-400">
             <tr><th class="px-4 py-2">Code</th><th class="px-4 py-2">Name</th><th class="px-4 py-2">SKS</th><th class="px-4 py-2">Level</th><th class="px-4 py-2"></th></tr>
         </thead>
         <tbody>
             {% for course in courses %}
-            <tr id="row-{{ course.pk }}" class="border-t border-slate-100 dark:border-slate-700">
+            <tr id="row-{{ course.pk }}" class="border-t border-zinc-100 dark:border-zinc-700">
                 <td class="px-4 py-2">{{ course.code }}</td>
                 <td class="px-4 py-2">{{ course.name }}</td>
                 <td class="px-4 py-2">{{ course.credits }}</td>
                 <td class="px-4 py-2">{{ course.get_level_display }}</td>
                 <td class="px-4 py-2 text-right space-x-2">
-                    <a href="{% url 'schedule:course_update' course.pk %}" class="text-slate-500 hover:text-blue-600">Edit</a>
+                    <a href="{% url 'schedule:course_update' course.pk %}" class="text-zinc-500 hover:text-indigo-600">Edit</a>
                     <button hx-post="{% url 'schedule:course_delete' course.pk %}" hx-target="#row-{{ course.pk }}"
                             hx-swap="outerHTML" hx-confirm="Delete this course?"
-                            class="text-slate-500 hover:text-red-600">Delete</button>
+                            class="text-zinc-500 hover:text-rose-600">Delete</button>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-    <div class="p-8 text-center text-slate-500 dark:text-slate-400">No courses yet.</div>
+    <div class="p-8 text-center text-zinc-500 dark:text-zinc-400">No courses yet.</div>
     {% endif %}
 </div>
 {% endblock %}

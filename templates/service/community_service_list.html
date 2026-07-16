@@ -4,18 +4,18 @@
 <h1 class="text-2xl font-semibold mb-4">Service</h1>
 {% include "service/_nav.html" with active="community" %}
 <div class="flex justify-end mb-4">
-    <a href="{% url 'service:community_service_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Add activity</a>
+    <a href="{% url 'service:community_service_create' %}" class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add activity</a>
 </div>
-<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
+<div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 overflow-hidden">
     {% if services %}
     <form method="post" action="{% url 'common:bulk_make_public' 'service' 'communityservice' %}">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.path }}">
         <div class="px-4 py-2 flex justify-end">
-            <button type="submit" class="text-xs text-blue-600 hover:underline">Make selected public</button>
+            <button type="submit" class="text-xs text-indigo-600 hover:underline">Make selected public</button>
         </div>
     <table class="w-full text-sm">
-        <thead class="bg-slate-50 dark:bg-slate-700 text-left text-slate-500 dark:text-slate-300">
+        <thead class="bg-zinc-50 dark:bg-zinc-700 text-left text-zinc-500 dark:text-zinc-400">
             <tr>
                 <th class="px-4 py-2"></th>
                 <th class="px-4 py-2">Title</th>
@@ -28,7 +28,7 @@
         </thead>
         <tbody>
             {% for service in services %}
-            <tr id="row-{{ service.pk }}" class="border-t border-slate-100 dark:border-slate-700">
+            <tr id="row-{{ service.pk }}" class="border-t border-zinc-100 dark:border-zinc-700">
                 <td class="px-4 py-2"><input type="checkbox" name="selected" value="{{ service.pk }}"></td>
                 <td class="px-4 py-2">{{ service.title }}</td>
                 <td class="px-4 py-2">{{ service.partner|default:"—" }}</td>
@@ -36,10 +36,10 @@
                 <td class="px-4 py-2">{{ service.date }}</td>
                 <td class="px-4 py-2">{% include "common/_public_toggle.html" with obj=service app_label="service" model_name="communityservice" %}</td>
                 <td class="px-4 py-2 text-right space-x-2">
-                    <a href="{% url 'service:community_service_update' service.pk %}" class="text-slate-500 hover:text-blue-600">Edit</a>
+                    <a href="{% url 'service:community_service_update' service.pk %}" class="text-zinc-500 hover:text-indigo-600">Edit</a>
                     <button hx-post="{% url 'service:community_service_delete' service.pk %}" hx-target="#row-{{ service.pk }}"
                             hx-swap="outerHTML" hx-confirm="Delete this activity?"
-                            class="text-slate-500 hover:text-red-600">Delete</button>
+                            class="text-zinc-500 hover:text-rose-600">Delete</button>
                 </td>
             </tr>
             {% endfor %}
@@ -47,7 +47,7 @@
     </table>
     </form>
     {% else %}
-    <div class="p-8 text-center text-slate-500 dark:text-slate-400">No community service (pengabdian) recorded yet.</div>
+    <div class="p-8 text-center text-zinc-500 dark:text-zinc-400">No community service (pengabdian) recorded yet.</div>
     {% endif %}
 </div>
 {% endblock %}

@@ -4,25 +4,25 @@
 <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-semibold">Documents</h1>
     <a href="{% url 'documents:document_create' %}"
-       class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Upload document</a>
+       class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Upload document</a>
 </div>
 
 <form method="get" class="flex flex-wrap gap-3 mb-4">
     <input type="search" name="q" value="{{ query }}" placeholder="Search title or tags..."
-           class="rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-1.5 text-sm flex-1 min-w-[200px]">
-    <select name="category" class="rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 px-3 py-1.5 text-sm">
+           class="rounded-lg border border-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 px-3 py-1.5 text-sm flex-1 min-w-[200px]">
+    <select name="category" class="rounded-lg border border-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 px-3 py-1.5 text-sm">
         <option value="">All categories</option>
         {% for value, label in categories %}
         <option value="{{ value }}" {% if value == selected_category %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
     </select>
-    <button type="submit" class="bg-slate-200 dark:bg-slate-700 rounded-lg px-4 py-1.5 text-sm">Filter</button>
+    <button type="submit" class="bg-zinc-200 dark:bg-zinc-700 rounded-lg px-4 py-1.5 text-sm">Filter</button>
 </form>
 
-<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
+<div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 overflow-hidden">
     {% if documents %}
     <table class="w-full text-sm">
-        <thead class="bg-slate-50 dark:bg-slate-700 text-left text-slate-500 dark:text-slate-300">
+        <thead class="bg-zinc-50 dark:bg-zinc-700 text-left text-zinc-500 dark:text-zinc-400">
             <tr>
                 <th class="px-4 py-2">Title</th>
                 <th class="px-4 py-2">Category</th>
@@ -33,28 +33,28 @@
         </thead>
         <tbody id="document-rows">
             {% for document in documents %}
-            <tr id="document-row-{{ document.pk }}" class="border-t border-slate-100 dark:border-slate-700">
+            <tr id="document-row-{{ document.pk }}" class="border-t border-zinc-100 dark:border-zinc-700">
                 <td class="px-4 py-2">
-                    <a href="{{ document.file.url }}" target="_blank" class="text-blue-600 hover:underline">{{ document.title }}</a>
+                    <a href="{{ document.file.url }}" target="_blank" class="text-indigo-600 hover:underline">{{ document.title }}</a>
                 </td>
                 <td class="px-4 py-2">{{ document.get_category_display }}</td>
                 <td class="px-4 py-2">{{ document.upload_date }}</td>
                 <td class="px-4 py-2">{{ document.expiry_date|default:"—" }}</td>
                 <td class="px-4 py-2 text-right space-x-2">
-                    <a href="{% url 'documents:document_update' document.pk %}" class="text-slate-500 hover:text-blue-600">Edit</a>
+                    <a href="{% url 'documents:document_update' document.pk %}" class="text-zinc-500 hover:text-indigo-600">Edit</a>
                     <button
                         hx-post="{% url 'documents:document_delete' document.pk %}"
                         hx-target="#document-row-{{ document.pk }}"
                         hx-swap="outerHTML"
                         hx-confirm="Delete '{{ document.title }}'? This cannot be undone."
-                        class="text-slate-500 hover:text-red-600">Delete</button>
+                        class="text-zinc-500 hover:text-rose-600">Delete</button>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-    <div class="p-8 text-center text-slate-500 dark:text-slate-400">
+    <div class="p-8 text-center text-zinc-500 dark:text-zinc-400">
         No documents yet. Upload SKs, certificates, LoAs, and other files to keep them in one place.
     </div>
     {% endif %}

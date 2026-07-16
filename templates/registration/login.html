@@ -2,12 +2,12 @@
 {% block title %}Log in · LecturerHub{% endblock %}
 {% block public_content %}
 <div class="min-h-screen flex items-center justify-center">
-    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-8 w-full max-w-sm">
+    <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-8 w-full max-w-sm">
         <h1 class="text-xl font-semibold mb-6 text-center">LecturerHub</h1>
         <form method="post" class="space-y-4">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium">Log in</button>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-4 py-2 text-sm font-medium">Log in</button>
         </form>
     </div>
 </div>
