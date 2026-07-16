@@ -60,3 +60,29 @@ def test_regenerate_slug_changes_value(auth_client, user):
     assert response.status_code == 302
     profile.refresh_from_db()
     assert profile.public_slug != old_slug
+
+@pytest.mark.django_db
+def test_profile_external_link_properties(user):
+    profile = Profile.objects.create(
+        user=user,
+        full_name="Jane",
+        orcid="0000-0002-6456-576X",
+        google_scholar_id="DRt8xy4AAAAJ",
+        linkedin_url="https://www.linkedin.com/in/ahmadagussetiawan",
+        phone="+62 822 4566 7731",
+    )
+    assert profile.orcid_url == "https://orcid.org/0000-0002-6456-576X"
+    assert profile.google_scholar_url == (
+        "https://scholar.google.com/citations?user=DRt8xy4AAAAJ"
+    )
+    assert profile.linkedin_label == "in/ahmadagussetiawan"
+    assert profile.whatsapp_url == "https://wa.me/6282245667731"
+
+
+@pytest.mark.django_db
+def test_profile_external_link_properties_empty_when_unset(user):
+    profile = Profile.objects.create(user=user, full_name="Jane")
+    assert profile.orcid_url == ""
+    assert profile.google_scholar_url == ""
+    assert profile.linkedin_label == ""
+    assert profile.whatsapp_url == ""

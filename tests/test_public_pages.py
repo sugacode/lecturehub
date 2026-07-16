@@ -271,3 +271,53 @@ def test_cv_export_authenticated_shows_all_records(auth_client):
     )
     response = auth_client.get(reverse("cv:export"))
     assert response.status_code == 200
+
+@pytest.mark.django_db
+def test_public_cv_renders_external_profile_links(client, user):
+    Profile.objects.create(
+        user=user,
+        full_name="Jane Doe",
+        orcid="0000-0002-6456-576X",
+        google_scholar_id="DRt8xy4AAAAJ",
+        linkedin_url="https://www.linkedin.com/in/janedoe",
+        phone="+62 811 000 111",
+        show_phone_publicly=True,
+    )
+    response = client.get(reverse("public:public_cv"))
+    content = response.content.decode()
+    assert 'href="https://orcid.org/0000-0002-6456-576X"' in content
+    assert 'href="https://scholar.google.com/citations?user=DRt8xy4AAAAJ"' in content
+    assert 'href="https://www.linkedin.com/in/janedoe"' in content
+    assert 'href="https://wa.me/62811000111"' in content
+    # captions are just the IDs, not full URLs
+    assert "in/janedoe" in content
+
+
+@pytest.mark.django_db
+def test_public_cv_hides_whatsapp_when_phone_not_public(client, user):
+    Profile.objects.create(
+        user=user, full_name="Jane Doe", phone="+62 811 000 111", show_phone_publicly=False
+    )
+    response = client.get(reverse("public:public_cv"))
+    content = response.content.decode()
+    assert "wa.me" not in content
+    assert "+62 811 000 111" not in content
+
+
+@pytest.mark.django_db
+def test_public_cv_publication_doi_is_hyperlinked(client):
+    from apps.publications.models import Publication
+
+    Publication.objects.create(
+        pub_type="journal_article",
+        title="Linked Paper",
+        authors="Jane Doe",
+        venue="Journal X",
+        year=2024,
+        doi="10.1234/abcd.5678",
+        is_public=True,
+    )
+    response = client.get(reverse("public:public_cv"))
+    content = response.content.decode()
+    assert 'href="https://doi.org/10.1234/abcd.5678"' in content
+    assert ">10.1234/abcd.5678</a>" in content

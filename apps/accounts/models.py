@@ -1,3 +1,4 @@
+import re
 import secrets
 
 from django.conf import settings
@@ -51,3 +52,28 @@ class Profile(models.Model):
     def regenerate_public_slug(self) -> None:
         self.public_slug = generate_public_slug()
         self.save(update_fields=["public_slug"])
+
+    # --- external-profile links (shared by the public CV page and the PDF export) ---
+
+    @property
+    def orcid_url(self) -> str:
+        return f"https://orcid.org/{self.orcid}" if self.orcid else ""
+
+    @property
+    def google_scholar_url(self) -> str:
+        if not self.google_scholar_id:
+            return ""
+        return f"https://scholar.google.com/citations?user={self.google_scholar_id}"
+
+    @property
+    def linkedin_label(self) -> str:
+        """The short handle shown as the link caption, e.g. 'in/ahmadagussetiawan'."""
+        if not self.linkedin_url:
+            return ""
+        return self.linkedin_url.rstrip("/").split("linkedin.com/")[-1]
+
+    @property
+    def whatsapp_url(self) -> str:
+        """wa.me link derived from the phone number (digits only, no leading zeros)."""
+        digits = re.sub(r"\D", "", self.phone)
+        return f"https://wa.me/{digits.lstrip('0')}" if digits else ""

@@ -148,17 +148,29 @@ def build_academic_cv_pdf(context: dict) -> bytes:
     story.append(Spacer(1, 6))
 
     if profile:
+        # Each ID is a live hyperlink whose visible caption is just the ID itself.
+        def link(url: str, caption: str) -> str:
+            return f'<a href="{url}" color="#1F6FB2">{caption}</a>'
+
         contact_bits = []
         if profile.email:
-            contact_bits.append(f"Email: {profile.email}")
+            contact_bits.append(f"Email: {link('mailto:' + profile.email, profile.email)}")
         if profile.phone:
-            contact_bits.append(f"Phone: {profile.phone}")
+            if profile.whatsapp_url:
+                contact_bits.append(f"WA: {link(profile.whatsapp_url, profile.phone)}")
+            else:
+                contact_bits.append(f"Phone: {profile.phone}")
         if profile.linkedin_url:
-            contact_bits.append(f"LinkedIn: {profile.linkedin_url}")
+            contact_bits.append(
+                f"LinkedIn: {link(profile.linkedin_url, profile.linkedin_label)}"
+            )
         if profile.orcid:
-            contact_bits.append(f"ORCID: {profile.orcid}")
+            contact_bits.append(f"ORCID: {link(profile.orcid_url, profile.orcid)}")
         if profile.google_scholar_id:
-            contact_bits.append(f"Google Scholar: {profile.google_scholar_id}")
+            contact_bits.append(
+                "Google Scholar: "
+                + link(profile.google_scholar_url, profile.google_scholar_id)
+            )
         if profile.institution:
             contact_bits.append(profile.institution)
         if contact_bits:
@@ -210,7 +222,7 @@ def build_academic_cv_pdf(context: dict) -> bytes:
                     cite += f", {pub.pages}"
                 cite += "."
                 if pub.doi:
-                    cite += f' <font color="#1F6FB2">doi:{pub.doi}</font>'
+                    cite += f' <a href="https://doi.org/{pub.doi}" color="#1F6FB2">{pub.doi}</a>'
                 label = f'<font color="#1F6FB2">[{counter}]</font>&nbsp;&nbsp;{cite}'
                 story.append(Paragraph(label, PUB_STYLE))
 
