@@ -4,4 +4,6 @@
     <a href="{% url 'cv:achievement_list' %}" class="px-3 py-1.5 rounded-lg {% if active == 'achievement' %}bg-blue-600 text-white{% else %}bg-white dark:bg-slate-800{% endif %}">Achievements</a>
     <a href="{% url 'cv:skill_list' %}" class="px-3 py-1.5 rounded-lg {% if active == 'skill' %}bg-blue-600 text-white{% else %}bg-white dark:bg-slate-800{% endif %}">Skills</a>
     <a href="{% url 'cv:training_list' %}" class="px-3 py-1.5 rounded-lg {% if active == 'training' %}bg-blue-600 text-white{% else %}bg-white dark:bg-slate-800{% endif %}">Training</a>
+    <a href="{% url 'cv:export' %}?style=academic" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700">Export PDF (Academic)</a>
+    <a href="{% url 'cv:export' %}?style=europass" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700">Export PDF (Europass)</a>
 </div>

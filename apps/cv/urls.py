@@ -5,6 +5,7 @@ from . import views
 app_name = "cv"
 
 urlpatterns = [
+    path("export/", views.cv_export, name="export"),
     path("", views.EducationListView.as_view(), name="education_list"),
     path("education/new/", views.EducationCreateView.as_view(), name="education_create"),
     path(

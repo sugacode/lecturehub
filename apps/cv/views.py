@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse
 from django.urls import reverse_lazy
@@ -14,6 +15,9 @@ from .forms import (
     TrainingCertificationForm,
 )
 from .models import Achievement, Education, Position, Skill, TrainingCertification
+from .pdf_academic import build_academic_cv_pdf
+from .pdf_data import get_cv_context
+from .pdf_europass import build_europass_cv_pdf
 
 
 class ToastFormMixin:
@@ -190,3 +194,17 @@ class TrainingCertificationUpdateView(LoginRequiredMixin, ToastFormMixin, Update
 class TrainingCertificationDeleteView(HtmxDeleteView):
     model = TrainingCertification
     success_url = reverse_lazy("cv:training_list")
+
+
+@login_required
+def cv_export(request: HttpRequest) -> HttpResponse:
+    """Generate a CV PDF. ?style=academic (default) or ?style=europass."""
+    style = request.GET.get("style", "academic")
+    context = get_cv_context()
+    if style == "europass":
+        pdf_bytes = build_europass_cv_pdf(context)
+    else:
+        pdf_bytes = build_academic_cv_pdf(context)
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="cv-{style}.pdf"'
+    return response
