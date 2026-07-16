@@ -242,9 +242,32 @@ sudo systemctl reload apache2
 sudo apt install -y certbot python3-certbot-apache
 sudo certbot --apache -d yourdomain.com -d www.yourdomain.com
 ```
-Certbot adds the `<VirtualHost *:443>` block and updates
-`RequestHeader set X-Forwarded-Proto` to `"https"` automatically — you
-don't need to edit that line yourself afterward.
+Certbot creates a **new** file, `/etc/apache2/sites-available/<name>-le-ssl.conf`,
+for the `<VirtualHost *:443>` block — it copies your `:80` vhost's directives
+into it, **including `RequestHeader set X-Forwarded-Proto "http"` verbatim,
+unchanged**. It does *not* update that value to `"https"` on its own (despite
+what you might expect, or what other guides may claim). Fix it manually or
+you'll get an infinite HTTPS redirect loop — Django receives
+`X-Forwarded-Proto: http` on every request, including ones that already
+arrived over HTTPS, and keeps "correcting" them:
+
+```bash
+sudo nano /etc/apache2/sites-available/<name>-le-ssl.conf
+```
+Change the one line to:
+```apache
+RequestHeader set X-Forwarded-Proto "https"
+```
+```bash
+sudo apache2ctl configtest
+sudo systemctl reload apache2
+```
+
+**If the domain is proxied through Cloudflare** (or another CDN/proxy in
+front of your VPS), also set its SSL/TLS mode to **Full (strict)**, not
+"Flexible" — Flexible mode means Cloudflare talks plain HTTP to your
+origin regardless of what the browser used, which independently causes
+the same redirect-loop symptom even with the header fixed above.
 
 With this path, `nginx` from step 1's package list is unnecessary; you can
 skip installing it, or leave it installed-but-stopped if you already did.
@@ -295,3 +318,15 @@ off-server storage is enough for a single-user app.
   && sudo systemctl disable apache2` (only if nothing else needs it) or
   `sudo pkill -f nginx` for a stuck nginx process, then retry `systemctl
   start nginx`.
+- **"Load cannot follow more than 20 redirections" / infinite HTTPS
+  redirect loop** — almost always `SECURE_PROXY_SSL_HEADER` mismatch: the
+  proxy in front of Django (Apache, nginx, or a CDN like Cloudflare) isn't
+  actually telling Django the request was HTTPS. Diagnose by bypassing
+  every layer one at a time:
+  1. `curl -skI --resolve yourdomain.com:443:<VPS_IP> https://yourdomain.com/`
+     — if this *also* redirects to itself, the bug is on the origin (check
+     the `-le-ssl.conf` file's `RequestHeader set X-Forwarded-Proto` value
+     — see the certbot section above, this is the most common cause).
+  2. If step 1 is fine but the real domain still loops, and it's proxied
+     through Cloudflare/another CDN, check that CDN's SSL mode is "Full
+     (strict)", not "Flexible".
