@@ -14,9 +14,12 @@ from apps.service.models import CommunityService, OrganizationalRole
 
 
 @pytest.mark.django_db
-def test_cv_export_requires_login(client):
+def test_cv_export_is_public_in_open_mode(client):
+    """cv:export is intentionally public (Phase 9) so /p/cv/'s Download PDF button works
+    without login; it's filtered to is_public=True records for anonymous requests."""
     response = client.get(reverse("cv:export"))
-    assert response.status_code == 302
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/pdf"
 
 
 @pytest.mark.django_db

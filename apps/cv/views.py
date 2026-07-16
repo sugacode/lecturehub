@@ -1,10 +1,11 @@
+from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
+from apps.accounts.models import Profile
 from apps.common.htmx import htmx_row_deleted
 
 from .forms import (
@@ -196,11 +197,24 @@ class TrainingCertificationDeleteView(HtmxDeleteView):
     success_url = reverse_lazy("cv:training_list")
 
 
-@login_required
 def cv_export(request: HttpRequest) -> HttpResponse:
-    """Generate a CV PDF. ?style=academic (default) or ?style=europass."""
+    """Generate a CV PDF. ?style=academic (default) or ?style=europass.
+
+    Public (unauthenticated) requests only ever see is_public=True records; in
+    PUBLIC_PAGES_MODE=unlisted they must also supply ?slug=<profile.public_slug>.
+    """
+    if not request.user.is_authenticated:
+        profile = Profile.objects.first()
+        if settings.PUBLIC_PAGES_MODE == "unlisted":
+            slug = request.GET.get("slug")
+            if not profile or not slug or slug != profile.public_slug:
+                raise Http404
+        public_only = True
+    else:
+        public_only = False
+
     style = request.GET.get("style", "academic")
-    context = get_cv_context()
+    context = get_cv_context(public_only=public_only)
     if style == "europass":
         pdf_bytes = build_europass_cv_pdf(context)
     else:

@@ -1,7 +1,9 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 
 from .forms import ProfileForm
 from .models import Profile
@@ -22,7 +24,22 @@ def profile_edit(request: HttpRequest) -> HttpResponse:
             return redirect("accounts:profile_edit")
     else:
         form = ProfileForm(instance=profile)
-    return render(request, "accounts/profile_edit.html", {"form": form, "profile": profile})
+
+    if settings.PUBLIC_PAGES_MODE == "unlisted":
+        public_cv_url = reverse("public:public_cv_slug", args=[profile.public_slug])
+        public_schedule_url = reverse("public:public_schedule_slug", args=[profile.public_slug])
+    else:
+        public_cv_url = reverse("public:public_cv")
+        public_schedule_url = reverse("public:public_schedule")
+
+    context = {
+        "form": form,
+        "profile": profile,
+        "public_pages_mode": settings.PUBLIC_PAGES_MODE,
+        "public_cv_url": public_cv_url,
+        "public_schedule_url": public_schedule_url,
+    }
+    return render(request, "accounts/profile_edit.html", context)
 
 
 @login_required

@@ -8,18 +8,35 @@
 </div>
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
     {% if assignments %}
+    <form method="post" action="{% url 'common:bulk_make_public' 'schedule' 'teachingassignment' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <div class="px-4 py-2 flex justify-end">
+            <button type="submit" class="text-xs text-blue-600 hover:underline">Make selected public</button>
+        </div>
     <table class="w-full text-sm">
         <thead class="bg-slate-50 dark:bg-slate-700 text-left text-slate-500 dark:text-slate-300">
-            <tr><th class="px-4 py-2">Course</th><th class="px-4 py-2">Semester</th><th class="px-4 py-2">Day</th><th class="px-4 py-2">Time</th><th class="px-4 py-2">Room</th><th class="px-4 py-2"></th></tr>
+            <tr>
+                <th class="px-4 py-2"></th>
+                <th class="px-4 py-2">Course</th>
+                <th class="px-4 py-2">Semester</th>
+                <th class="px-4 py-2">Day</th>
+                <th class="px-4 py-2">Time</th>
+                <th class="px-4 py-2">Room</th>
+                <th class="px-4 py-2">Visibility</th>
+                <th class="px-4 py-2"></th>
+            </tr>
         </thead>
         <tbody>
             {% for assignment in assignments %}
             <tr id="row-{{ assignment.pk }}" class="border-t border-slate-100 dark:border-slate-700">
+                <td class="px-4 py-2"><input type="checkbox" name="selected" value="{{ assignment.pk }}"></td>
                 <td class="px-4 py-2">{{ assignment.course }} {{ assignment.class_label }}</td>
                 <td class="px-4 py-2">{{ assignment.semester }}</td>
                 <td class="px-4 py-2">{{ assignment.get_day_of_week_display }}</td>
                 <td class="px-4 py-2">{{ assignment.start_time|time:"H:i" }}–{{ assignment.end_time|time:"H:i" }}</td>
                 <td class="px-4 py-2">{{ assignment.room }}</td>
+                <td class="px-4 py-2">{% include "common/_public_toggle.html" with obj=assignment app_label="schedule" model_name="teachingassignment" %}</td>
                 <td class="px-4 py-2 text-right space-x-2">
                     <a href="{% url 'schedule:assignment_update' assignment.pk %}" class="text-slate-500 hover:text-blue-600">Edit</a>
                     <button hx-post="{% url 'schedule:assignment_delete' assignment.pk %}" hx-target="#row-{{ assignment.pk }}"
@@ -30,6 +47,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </form>
     {% else %}
     <div class="p-8 text-center text-slate-500 dark:text-slate-400">No teaching assignments yet.</div>
     {% endif %}

@@ -8,23 +8,33 @@
 </div>
 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
     {% if educations %}
+    <form method="post" action="{% url 'common:bulk_make_public' 'cv' 'education' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <div class="px-4 py-2 flex justify-end">
+            <button type="submit" class="text-xs text-blue-600 hover:underline">Make selected public</button>
+        </div>
     <table class="w-full text-sm">
         <thead class="bg-slate-50 dark:bg-slate-700 text-left text-slate-500 dark:text-slate-300">
             <tr>
+                <th class="px-4 py-2"></th>
                 <th class="px-4 py-2">Level</th>
                 <th class="px-4 py-2">Program</th>
                 <th class="px-4 py-2">Institution</th>
                 <th class="px-4 py-2">Years</th>
+                <th class="px-4 py-2">Visibility</th>
                 <th class="px-4 py-2"></th>
             </tr>
         </thead>
         <tbody>
             {% for education in educations %}
             <tr id="row-{{ education.pk }}" class="border-t border-slate-100 dark:border-slate-700">
+                <td class="px-4 py-2"><input type="checkbox" name="selected" value="{{ education.pk }}"></td>
                 <td class="px-4 py-2">{{ education.get_degree_level_display }}</td>
                 <td class="px-4 py-2">{{ education.program }}</td>
                 <td class="px-4 py-2">{{ education.institution }}</td>
                 <td class="px-4 py-2">{{ education.start_year }}–{{ education.end_year|default:"present" }}</td>
+                <td class="px-4 py-2">{% include "common/_public_toggle.html" with obj=education app_label="cv" model_name="education" %}</td>
                 <td class="px-4 py-2 text-right space-x-2">
                     <a href="{% url 'cv:education_update' education.pk %}" class="text-slate-500 hover:text-blue-600">Edit</a>
                     <button hx-post="{% url 'cv:education_delete' education.pk %}" hx-target="#row-{{ education.pk }}"
@@ -35,6 +45,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </form>
     {% else %}
     <div class="p-8 text-center text-slate-500 dark:text-slate-400">No education records yet.</div>
     {% endif %}

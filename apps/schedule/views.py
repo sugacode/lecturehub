@@ -5,11 +5,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
-from apps.common.htmx import htmx_row_deleted
+from apps.common.htmx import htmx_row_deleted, toast_header
 
 from .forms import CourseForm, EventForm, SemesterForm, TeachingAssignmentForm
 from .ics_export import build_ics_calendar
@@ -140,6 +140,11 @@ class EventListView(LoginRequiredMixin, ListView):
     template_name = "schedule/event_list.html"
     context_object_name = "events"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["visibility_choices"] = Event.Visibility.choices
+        return context
+
 
 class EventCreateView(LoginRequiredMixin, ToastFormMixin, CreateView):
     model = Event
@@ -160,6 +165,20 @@ class EventUpdateView(LoginRequiredMixin, ToastFormMixin, UpdateView):
 class EventDeleteView(HtmxDeleteView):
     model = Event
     success_url = reverse_lazy("schedule:event_list")
+
+
+@login_required
+def event_set_visibility(request: HttpRequest, pk: int) -> HttpResponse:
+    """HTMX endpoint for the visibility <select> on the event list page."""
+    event = get_object_or_404(Event, pk=pk)
+    visibility = request.POST.get("visibility")
+    if visibility in Event.Visibility.values:
+        event.visibility = visibility
+        event.save(update_fields=["visibility"])
+    response = HttpResponse(status=204)
+    for key, value in toast_header("Visibility updated.").items():
+        response[key] = value
+    return response
 
 
 # Calendar views

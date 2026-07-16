@@ -10,7 +10,7 @@
     {% if events %}
     <table class="w-full text-sm">
         <thead class="bg-slate-50 dark:bg-slate-700 text-left text-slate-500 dark:text-slate-300">
-            <tr><th class="px-4 py-2">Title</th><th class="px-4 py-2">Category</th><th class="px-4 py-2">Start</th><th class="px-4 py-2">End</th><th class="px-4 py-2"></th></tr>
+            <tr><th class="px-4 py-2">Title</th><th class="px-4 py-2">Category</th><th class="px-4 py-2">Start</th><th class="px-4 py-2">End</th><th class="px-4 py-2">Visibility</th><th class="px-4 py-2"></th></tr>
         </thead>
         <tbody>
             {% for event in events %}
@@ -19,6 +19,14 @@
                 <td class="px-4 py-2">{{ event.get_category_display }}</td>
                 <td class="px-4 py-2">{{ event.start_datetime }}</td>
                 <td class="px-4 py-2">{{ event.end_datetime }}</td>
+                <td class="px-4 py-2">
+                    <select hx-post="{% url 'schedule:event_set_visibility' event.pk %}" hx-trigger="change" hx-swap="none"
+                            name="visibility" class="rounded border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-xs px-1 py-0.5">
+                        {% for value, label in visibility_choices %}
+                        <option value="{{ value }}" {% if value == event.visibility %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
                 <td class="px-4 py-2 text-right space-x-2">
                     <a href="{% url 'schedule:event_update' event.pk %}" class="text-slate-500 hover:text-blue-600">Edit</a>
                     <button hx-post="{% url 'schedule:event_delete' event.pk %}" hx-target="#row-{{ event.pk }}"
