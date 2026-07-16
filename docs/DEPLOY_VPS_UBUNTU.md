@@ -8,6 +8,10 @@ standard Django production stack yourself — **gunicorn** (WSGI server) behind
 still works here as a fallback, but nginx serving `/static/` and `/media/`
 directly is faster and is what this guide sets up.
 
+**Already running Apache on this box for other sites?** Don't fight it for
+port 80 — skip straight to "Alternative: Apache instead of nginx" near the
+end, which reverse-proxies through Apache instead.
+
 Commands below assume you're SSH'd in as a non-root sudo user. Replace
 `yourdomain.com` and `deploy` (the app-owning user) throughout.
 
@@ -174,6 +178,77 @@ Certbot edits the nginx config to add the TLS `server` block and set up
 auto-renewal (`systemctl status certbot.timer` to confirm the renewal
 timer is active).
 
+## Alternative: Apache instead of nginx (server already runs Apache for other sites)
+
+If port 80 is already held by Apache serving other sites on the same box,
+don't disable it — add lecturerhub as another Apache vhost reverse-proxying
+to gunicorn, instead of introducing nginx to fight for the port. Skip
+steps 8–9 above and do this instead.
+
+**Bind gunicorn to a local TCP port instead of a unix socket** (simpler for
+Apache's proxy config than `mod_proxy_uds`). In the systemd unit from step
+7, change:
+```
+ExecStart=/home/deploy/lecturerhub/.venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8001 \
+    config.wsgi:application
+```
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart lecturerhub
+```
+
+**Enable Apache's proxy modules:**
+```bash
+sudo a2enmod proxy proxy_http headers
+```
+
+**Create `/etc/apache2/sites-available/lecturerhub.conf`:**
+```apache
+<VirtualHost *:80>
+    ServerName yourdomain.com
+    ServerAlias www.yourdomain.com
+
+    Alias /static/ /home/deploy/lecturerhub/staticfiles/
+    Alias /media/  /home/deploy/lecturerhub/media/
+
+    <Directory /home/deploy/lecturerhub/staticfiles>
+        Require all granted
+    </Directory>
+    <Directory /home/deploy/lecturerhub/media>
+        Require all granted
+    </Directory>
+
+    ProxyPreserveHost On
+    ProxyPass /static/ !
+    ProxyPass /media/ !
+    ProxyPass / http://127.0.0.1:8001/
+    ProxyPassReverse / http://127.0.0.1:8001/
+
+    RequestHeader set X-Forwarded-Proto "http"
+</VirtualHost>
+```
+
+**Enable the site and reload:**
+```bash
+sudo a2ensite lecturerhub
+sudo apache2ctl configtest
+sudo systemctl reload apache2
+```
+
+**HTTPS via certbot's Apache plugin:**
+```bash
+sudo apt install -y certbot python3-certbot-apache
+sudo certbot --apache -d yourdomain.com -d www.yourdomain.com
+```
+Certbot adds the `<VirtualHost *:443>` block and updates
+`RequestHeader set X-Forwarded-Proto` to `"https"` automatically — you
+don't need to edit that line yourself afterward.
+
+With this path, `nginx` from step 1's package list is unnecessary; you can
+skip installing it, or leave it installed-but-stopped if you already did.
+
 ## Updating after a git push
 
 ```bash
@@ -208,6 +283,15 @@ off-server storage is enough for a single-user app.
   the `Group=` in the systemd unit) can actually read
   `staticfiles/`/`media/`; `chmod -R o+rX` on those two directories if in
   doubt.
-- **CSRF failures behind nginx** — the `X-Forwarded-Proto` header above
-  is required; without it Django doesn't know the original request was
-  HTTPS, which breaks CSRF's origin check under `config.settings.prod`.
+- **CSRF failures behind nginx/Apache** — the `X-Forwarded-Proto` header
+  set in both the nginx and Apache configs above is required; without it
+  Django doesn't know the original request was HTTPS, which breaks CSRF's
+  origin check under `config.settings.prod`.
+- **`nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in
+  use)`** — something else already owns port 80. Check with
+  `sudo ss -tlnp | grep :80`. If it's Apache serving other sites, use the
+  Apache alternative above rather than stopping Apache; if it's a leftover
+  nginx process or an unused Apache install, `sudo systemctl stop apache2
+  && sudo systemctl disable apache2` (only if nothing else needs it) or
+  `sudo pkill -f nginx` for a stuck nginx process, then retry `systemctl
+  start nginx`.
