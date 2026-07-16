@@ -37,6 +37,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -88,8 +89,24 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# WhiteNoise serves static files straight from the Django process, which
+# matters on hosts (e.g. shared/Passenger hosting) where you can't configure
+# the web server's own static-file aliases. Harmless everywhere else.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
+
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Django doesn't serve MEDIA_ROOT itself outside DEBUG. Most hosts have some
+# other way to alias /media/ to disk (nginx, PythonAnywhere's Static files
+# UI, etc.); on hosts where you can't configure that (e.g. shared/Passenger
+# hosting), set SERVE_MEDIA_VIA_DJANGO=True to have config/urls.py serve it
+# directly. Fine for a low-traffic single-user app; not a general-purpose
+# production pattern at scale.
+SERVE_MEDIA_VIA_DJANGO = os.environ.get("SERVE_MEDIA_VIA_DJANGO", "False") == "True"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

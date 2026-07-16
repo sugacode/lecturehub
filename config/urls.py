@@ -27,5 +27,5 @@ urlpatterns = [
     path("p/", include("apps.dashboard.public_urls")),
 ]
 
-if settings.DEBUG:
+if settings.DEBUG or settings.SERVE_MEDIA_VIA_DJANGO:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
