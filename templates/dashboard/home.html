@@ -2,9 +2,75 @@
 {% block title %}Dashboard · LecturerHub{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-semibold mb-6">Dashboard</h1>
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 text-slate-500 dark:text-slate-400">
-        Widgets will appear here in Phase 7.
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4">
+        <div class="text-2xl font-semibold">{{ publication_stats.total }}</div>
+        <div class="text-sm text-slate-500 dark:text-slate-400">Publications</div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4">
+        <div class="text-2xl font-semibold">{{ active_grants.count }}</div>
+        <div class="text-sm text-slate-500 dark:text-slate-400">Active grants</div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4">
+        <div class="text-2xl font-semibold">{{ active_students.count }}</div>
+        <div class="text-sm text-slate-500 dark:text-slate-400">Active students</div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4">
+        <div class="text-2xl font-semibold">{{ expiring_documents.count }}</div>
+        <div class="text-sm text-slate-500 dark:text-slate-400">Documents expiring soon</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+        <h2 class="font-semibold mb-3">Next 7 days</h2>
+        <div class="space-y-2">
+            {% for item in upcoming_teaching %}
+            <div class="text-sm bg-blue-50 dark:bg-blue-900 rounded-lg px-3 py-2">
+                {{ item.date }} · {{ item.assignment.start_time|time:"H:i" }} · {{ item.assignment.course.code }} {{ item.assignment.class_label }}
+            </div>
+            {% endfor %}
+            {% for event in upcoming_events %}
+            <div class="text-sm bg-amber-50 dark:bg-amber-900 rounded-lg px-3 py-2">
+                {{ event.start_datetime|date:"Y-m-d H:i" }} · {{ event.title }}
+            </div>
+            {% empty %}
+            {% endfor %}
+            {% if not upcoming_teaching and not upcoming_events %}
+            <div class="text-sm text-slate-400">Nothing scheduled in the next 7 days.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+        <h2 class="font-semibold mb-3">Due within 30 days</h2>
+        <div class="space-y-2">
+            {% for deliverable in upcoming_deliverables %}
+            <div class="text-sm bg-purple-50 dark:bg-purple-900 rounded-lg px-3 py-2">
+                {{ deliverable.due_date }} · Deliverable: {{ deliverable.name }} ({{ deliverable.grant.title }})
+            </div>
+            {% endfor %}
+            {% for milestone in upcoming_milestones %}
+            <div class="text-sm bg-green-50 dark:bg-green-900 rounded-lg px-3 py-2">
+                {{ milestone.due_date }} · Milestone: {{ milestone.name }} ({{ milestone.student.name }})
+            </div>
+            {% endfor %}
+            {% if not upcoming_deliverables and not upcoming_milestones %}
+            <div class="text-sm text-slate-400">Nothing due in the next 30 days.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+    <h2 class="font-semibold mb-3">Publications by indexing</h2>
+    <div class="flex flex-wrap gap-3">
+        {% for indexing, count in publication_stats.by_indexing.items %}
+        <div class="text-sm bg-slate-100 dark:bg-slate-700 rounded-lg px-3 py-1.5">{{ indexing }}: {{ count }}</div>
+        {% empty %}
+        <div class="text-sm text-slate-400">No publications yet.</div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

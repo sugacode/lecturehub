@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Search · LecturerHub{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">Search results for "{{ query }}"</h1>
+
+{% if not query %}
+<div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-8 text-center text-slate-500 dark:text-slate-400">
+    Type something in the search box above.
+</div>
+{% else %}
+
+<div class="space-y-6">
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+        <h2 class="font-semibold mb-3">Publications ({{ results.publications.count }})</h2>
+        {% for publication in results.publications %}
+        <div class="text-sm py-1"><a href="{% url 'publications:publication_update' publication.pk %}" class="text-blue-600 hover:underline">{{ publication.title }}</a> ({{ publication.year }})</div>
+        {% empty %}
+        <div class="text-sm text-slate-400">No matches.</div>
+        {% endfor %}
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+        <h2 class="font-semibold mb-3">Students ({{ results.students.count }})</h2>
+        {% for student in results.students %}
+        <div class="text-sm py-1"><a href="{% url 'supervision:student_timeline' student.pk %}" class="text-blue-600 hover:underline">{{ student.name }}</a> ({{ student.nim }})</div>
+        {% empty %}
+        <div class="text-sm text-slate-400">No matches.</div>
+        {% endfor %}
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+        <h2 class="font-semibold mb-3">Documents ({{ results.documents.count }})</h2>
+        {% for document in results.documents %}
+        <div class="text-sm py-1"><a href="{% url 'documents:document_update' document.pk %}" class="text-blue-600 hover:underline">{{ document.title }}</a></div>
+        {% empty %}
+        <div class="text-sm text-slate-400">No matches.</div>
+        {% endfor %}
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+        <h2 class="font-semibold mb-3">Events ({{ results.events.count }})</h2>
+        {% for event in results.events %}
+        <div class="text-sm py-1"><a href="{% url 'schedule:event_update' event.pk %}" class="text-blue-600 hover:underline">{{ event.title }}</a> ({{ event.start_datetime|date:"Y-m-d" }})</div>
+        {% empty %}
+        <div class="text-sm text-slate-400">No matches.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
