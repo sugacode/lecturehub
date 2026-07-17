@@ -18,12 +18,13 @@
         <a href="#education" class="hover:text-indigo-600">Education</a>
         <a href="#positions" class="hover:text-indigo-600">Positions</a>
         <a href="#publications" class="hover:text-indigo-600">Publications</a>
+        <a href="#intellectual-property" class="hover:text-indigo-600">IP</a>
         <a href="#grants" class="hover:text-indigo-600">Grants</a>
         <a href="#service" class="hover:text-indigo-600">Service</a>
         <a href="#achievements" class="hover:text-indigo-600">Achievements</a>
         <a href="#skills" class="hover:text-indigo-600">Skills</a>
         <span class="flex-1"></span>
-        <button @click="darkMode = !darkMode" class="text-zinc-500 hover:text-indigo-600">Toggle dark mode</button>
+        <button @click="$store.theme.dark = !$store.theme.dark" class="text-zinc-500 hover:text-indigo-600">Toggle dark mode</button>
         <a href="{% url 'cv:export' %}?style=academic{% if request.resolver_match.kwargs.slug %}&slug={{ request.resolver_match.kwargs.slug }}{% endif %}"
            class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-3 py-1 font-medium shadow-sm transition-colors">Download PDF</a>
     </nav>
@@ -148,6 +149,21 @@
         </div>
         {% empty %}
         <p class="text-zinc-400 text-sm">No public publications.</p>
+        {% endfor %}
+    </section>
+
+    <section id="intellectual-property" class="mb-10 scroll-mt-20">
+        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Intellectual Property</h2>
+        {% for ip in intellectual_properties %}
+        <div class="mb-3 text-sm">
+            <div class="font-medium">{{ ip.title }}</div>
+            <div class="text-zinc-500 dark:text-zinc-400">
+                {{ ip.get_ip_type_display }}{% if ip.registration_number %} — No. {{ ip.registration_number }}{% endif %}
+                ({{ ip.registration_date }})
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-zinc-400 text-sm">No public intellectual property.</p>
         {% endfor %}
     </section>
 

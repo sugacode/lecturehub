@@ -144,3 +144,8 @@ def test_log_create_and_delete_via_timeline(auth_client, student):
     )
     assert delete_response.status_code == 200
     assert not SupervisionLog.objects.filter(pk=log.pk).exists()
+
+
+def test_student_level_includes_d3_and_s3():
+    values = {choice.value for choice in Student.Level}
+    assert values == {"d3", "s1", "s2", "s3"}

@@ -226,6 +226,16 @@ def build_academic_cv_pdf(context: dict) -> bytes:
                 label = f'<font color="#1F6FB2">[{counter}]</font>&nbsp;&nbsp;{cite}'
                 story.append(Paragraph(label, PUB_STYLE))
 
+    # Intellectual Property
+    intellectual_properties = list(context["intellectual_properties"])
+    if intellectual_properties:
+        story.extend(_section("Intellectual Property"))
+        for ip in intellectual_properties:
+            subtitle = ip.get_ip_type_display()
+            if ip.registration_number:
+                subtitle += f" — No. {ip.registration_number}"
+            story.extend(_entry(ip.registration_date.isoformat(), ip.title, subtitle, []))
+
     # Grants
     grants = list(context["grants"])
     if grants:

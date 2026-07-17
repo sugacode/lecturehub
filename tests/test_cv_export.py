@@ -8,7 +8,7 @@ from apps.cv.models import Achievement, Education, Position, Skill
 from apps.cv.pdf_academic import build_academic_cv_pdf
 from apps.cv.pdf_data import get_cv_context
 from apps.cv.pdf_europass import build_europass_cv_pdf
-from apps.publications.models import Publication
+from apps.publications.models import IntellectualProperty, Publication
 from apps.research.models import Grant
 from apps.service.models import CommunityService, OrganizationalRole
 
@@ -225,3 +225,30 @@ def test_flatten_publications_by_year_sorts_newest_first_across_types():
     ]
     result = _flatten_publications_by_year(publications_by_type)
     assert result == [newer, older]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("style", ["academic", "europass"])
+def test_cv_export_includes_intellectual_property_section(auth_client, style, tmp_path):
+    import shutil
+    import subprocess
+
+    if shutil.which("pdftotext") is None:
+        pytest.skip("pdftotext (poppler) not installed")
+
+    IntellectualProperty.objects.create(
+        title="Campus Navigation App",
+        ip_type="copyright",
+        registration_number="EC00202516819",
+        registration_date=datetime.date(2025, 1, 1),
+        is_public=True,
+    )
+    response = auth_client.get(reverse("cv:export"), {"style": style})
+    assert response.status_code == 200
+    pdf_path = tmp_path / "cv.pdf"
+    pdf_path.write_bytes(response.content)
+    text = subprocess.run(
+        ["pdftotext", str(pdf_path), "-"], capture_output=True, text=True, check=True
+    ).stdout
+    assert "Campus Navigation App" in text
+    assert "EC00202516819" in text

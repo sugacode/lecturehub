@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" x-data="{ darkMode: $cookie('dark_mode') === 'true', sidebarOpen: false }"
-      x-init="$watch('darkMode', v => $cookie('dark_mode', v))"
-      :class="{ dark: darkMode }">
+<html lang="en" x-data="{ sidebarOpen: false }" :class="{ dark: $store.theme.dark }">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -80,9 +78,14 @@
             e.detail.headers['X-CSRFToken'] = getCookie('csrftoken');
         });
         document.addEventListener('alpine:init', () => {
-            Alpine.magic('cookie', () => (name, value) => {
-                if (value === undefined) return getCookie(name);
-                document.cookie = `${name}=${value};path=/;max-age=31536000`;
+            // A store (rather than x-data on <html>) so any element anywhere
+            // on the page — even nested inside its own x-data scope, like
+            // filter widgets on the public CV page — can read/toggle dark
+            // mode via $store.theme without depending on Alpine's scope
+            // walk correctly resolving an ancestor property.
+            Alpine.store('theme', { dark: getCookie('dark_mode') === 'true' });
+            Alpine.effect(() => {
+                document.cookie = `dark_mode=${Alpine.store('theme').dark};path=/;max-age=31536000`;
             });
             Alpine.data('toaster', () => ({
                 toasts: [],
@@ -123,11 +126,11 @@
             {% endfor %}
         </nav>
         <div class="px-3 py-4 border-t border-white/5 space-y-0.5">
-            <button @click="darkMode = !darkMode"
+            <button @click="$store.theme.dark = !$store.theme.dark"
                     class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-colors">
-                <svg x-show="!darkMode" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
-                <svg x-show="darkMode" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
-                <span x-text="darkMode ? 'Light mode' : 'Dark mode'"></span>
+                <svg x-show="!$store.theme.dark" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
+                <svg x-show="$store.theme.dark" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
+                <span x-text="$store.theme.dark ? 'Light mode' : 'Dark mode'"></span>
             </button>
             <form action="{% url 'logout' %}" method="post">
                 {% csrf_token %}
@@ -151,6 +154,14 @@
             {% for item in sidebar_items %}
             <a href="{% url item.url_name %}" class="block py-2 hover:text-white">{{ item.label }}</a>
             {% endfor %}
+            <div class="border-t border-white/5 pt-1 mt-1">
+                <button @click="$store.theme.dark = !$store.theme.dark" class="w-full text-left py-2 hover:text-white"
+                        x-text="$store.theme.dark ? 'Light mode' : 'Dark mode'"></button>
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full text-left py-2 hover:text-white">Log out</button>
+                </form>
+            </div>
         </div>
 
         <header class="bg-white/80 dark:bg-zinc-900/80 backdrop-blur border-b border-zinc-200 dark:border-white/5 px-6 py-3 flex items-center justify-between sticky top-0 z-10">

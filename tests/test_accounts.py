@@ -86,3 +86,9 @@ def test_profile_external_link_properties_empty_when_unset(user):
     assert profile.google_scholar_url == ""
     assert profile.linkedin_label == ""
     assert profile.whatsapp_url == ""
+
+
+def test_session_expires_after_one_day():
+    from django.conf import settings
+
+    assert settings.SESSION_COOKIE_AGE == 60 * 60 * 24

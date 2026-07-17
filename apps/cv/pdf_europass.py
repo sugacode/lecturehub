@@ -299,6 +299,18 @@ def build_europass_cv_pdf(context: dict) -> bytes:
             story.append(_row(str(pub.year), [Paragraph(cite, BODY_STYLE)]))
         story.append(Spacer(1, 8))
 
+    def ip_row(ip):
+        subtitle = ip.get_ip_type_display()
+        if ip.registration_number:
+            subtitle += f" — No. {ip.registration_number}"
+        content = [
+            Paragraph(ip.title, CONTENT_TITLE_STYLE),
+            Paragraph(subtitle, CONTENT_SUB_STYLE),
+        ]
+        return _row(ip.registration_date.isoformat(), content)
+
+    add_section("Intellectual Property", list(context["intellectual_properties"]), ip_row)
+
     grants = list(context["grants"])
     if grants:
 

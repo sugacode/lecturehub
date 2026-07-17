@@ -6,8 +6,10 @@ class Student(models.Model):
     """A thesis student under supervision."""
 
     class Level(models.TextChoices):
+        D3 = "d3", "D3"
         S1 = "s1", "S1"
         S2 = "s2", "S2"
+        S3 = "s3", "S3"
 
     class Status(models.TextChoices):
         PROPOSAL = "proposal", "Proposal"

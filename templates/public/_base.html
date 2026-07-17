@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" x-data="{ darkMode: $cookie('dark_mode') === 'true' }"
-      x-init="$watch('darkMode', v => $cookie('dark_mode', v))"
-      :class="{ dark: darkMode }">
+<html lang="en" x-data :class="{ dark: $store.theme.dark }">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,9 +16,12 @@
             return match ? match.pop() : '';
         }
         document.addEventListener('alpine:init', () => {
-            Alpine.magic('cookie', () => (name, value) => {
-                if (value === undefined) return getCookie(name);
-                document.cookie = `${name}=${value};path=/;max-age=31536000`;
+            // See templates/base.html for why this is a store rather than
+            // x-data on <html>: it must stay reachable from nested x-data
+            // scopes like the publication filters on the public CV page.
+            Alpine.store('theme', { dark: getCookie('dark_mode') === 'true' });
+            Alpine.effect(() => {
+                document.cookie = `dark_mode=${Alpine.store('theme').dark};path=/;max-age=31536000`;
             });
         });
     </script>

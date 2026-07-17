@@ -321,3 +321,26 @@ def test_public_cv_publication_doi_is_hyperlinked(client):
     content = response.content.decode()
     assert 'href="https://doi.org/10.1234/abcd.5678"' in content
     assert ">10.1234/abcd.5678</a>" in content
+
+
+@pytest.mark.django_db
+def test_public_cv_shows_public_intellectual_property(client):
+    from apps.publications.models import IntellectualProperty
+
+    IntellectualProperty.objects.create(
+        title="Public IP Record",
+        ip_type="patent",
+        registration_number="P-123",
+        registration_date=datetime.date(2024, 1, 1),
+        is_public=True,
+    )
+    IntellectualProperty.objects.create(
+        title="Private IP Record",
+        ip_type="patent",
+        registration_number="P-456",
+        registration_date=datetime.date(2024, 1, 1),
+        is_public=False,
+    )
+    response = client.get(reverse("public:public_cv"))
+    assert b"Public IP Record" in response.content
+    assert b"Private IP Record" not in response.content

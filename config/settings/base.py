@@ -114,6 +114,11 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard:home"
 LOGOUT_REDIRECT_URL = "login"
 
+# Auto-logout a day after login. SESSION_SAVE_EVERY_REQUEST is left at its
+# default (False), so this is an absolute expiry from login time, not a
+# sliding "1 day since last click" window.
+SESSION_COOKIE_AGE = 60 * 60 * 24
+
 # Public pages behavior: "open" serves /p/cv/ and /p/schedule/ directly;
 # "unlisted" only serves them at the slug-based URLs.
 PUBLIC_PAGES_MODE = os.environ.get("PUBLIC_PAGES_MODE", "open")
