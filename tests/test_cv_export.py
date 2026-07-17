@@ -171,3 +171,41 @@ def test_build_europass_cv_pdf_handles_no_profile():
     }
     pdf_bytes = build_europass_cv_pdf(context)
     assert pdf_bytes.startswith(b"%PDF")
+
+
+def _uri_annotations(pdf_bytes: bytes) -> list[str]:
+    import re
+
+    return [m.decode() for m in re.findall(rb"/URI\s*\(([^)]+)\)", pdf_bytes)]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("style", ["academic", "europass"])
+def test_cv_export_hyperlinks_external_profile_ids_and_dois(auth_client, user, style):
+    Profile.objects.create(
+        user=user,
+        full_name="Jane Doe",
+        email="jane@example.com",
+        phone="+62 811 000 111",
+        orcid="0000-0002-6456-576X",
+        google_scholar_id="DRt8xy4AAAAJ",
+        linkedin_url="https://www.linkedin.com/in/janedoe",
+    )
+    Publication.objects.create(
+        pub_type="journal_article",
+        title="Linked Paper",
+        authors="Jane Doe",
+        venue="Journal X",
+        year=2024,
+        doi="10.1234/abcd.5678",
+        is_public=True,
+    )
+    response = auth_client.get(reverse("cv:export"), {"style": style})
+    assert response.status_code == 200
+    uris = _uri_annotations(response.content)
+    assert "mailto:jane@example.com" in uris
+    assert "https://wa.me/62811000111" in uris
+    assert "https://orcid.org/0000-0002-6456-576X" in uris
+    assert "https://scholar.google.com/citations?user=DRt8xy4AAAAJ" in uris
+    assert "https://www.linkedin.com/in/janedoe" in uris
+    assert "https://doi.org/10.1234/abcd.5678" in uris

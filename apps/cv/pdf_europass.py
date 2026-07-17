@@ -4,11 +4,52 @@ grey section bars, distinct from the accent-color academic style.
 
 import io
 
+from reportlab.graphics.shapes import Circle, Drawing, String
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+# Small circular brand-color monogram icons, since ReportLab has no built-in
+# icon set and pulling in an SVG-rasterizing dependency (svglib) just for
+# four glyphs isn't worth it. Each is a 10pt Drawing: solid circle + a 1-2
+# letter mark that reads at CV-header size, in the platform's brand color.
+_ICON_SIZE = 10
+_ICON_SPECS = {
+    "whatsapp": ("#25D366", "W", colors.white),
+    "orcid": ("#A6CE39", "iD", colors.white),
+    "scholar": ("#4285F4", "S", colors.white),
+    "linkedin": ("#0A66C2", "in", colors.white),
+}
+
+
+def _icon(kind: str) -> Drawing:
+    bg, mark, fg = _ICON_SPECS[kind]
+    d = Drawing(_ICON_SIZE, _ICON_SIZE)
+    d.add(
+        Circle(
+            _ICON_SIZE / 2,
+            _ICON_SIZE / 2,
+            _ICON_SIZE / 2,
+            fillColor=colors.HexColor(bg),
+            strokeColor=None,
+        )
+    )
+    font_size = 6 if len(mark) == 1 else 4.6
+    d.add(
+        String(
+            _ICON_SIZE / 2,
+            _ICON_SIZE / 2 - font_size / 2.8,
+            mark,
+            fontName="Helvetica-Bold",
+            fontSize=font_size,
+            fillColor=fg,
+            textAnchor="middle",
+        )
+    )
+    return d
+
 
 BAR_BG = colors.HexColor("#003366")
 BAR_TEXT = colors.white
@@ -87,34 +128,83 @@ def build_europass_cv_pdf(context: dict) -> bytes:
     story.append(Paragraph("Curriculum Vitae", TITLE_STYLE))
     story.append(Spacer(1, 8))
 
+    def link(url: str, caption: str) -> str:
+        return f'<a href="{url}" color="#003366"><u>{caption}</u></a>'
+
     full_name = profile.full_name if profile else "Lecturer"
-    personal_rows = [[Paragraph("Name", LABEL_STYLE), Paragraph(full_name, NAME_STYLE)]]
+    personal_rows = [["", Paragraph("Name", LABEL_STYLE), Paragraph(full_name, NAME_STYLE)]]
     if profile:
         if profile.email:
             personal_rows.append(
-                [Paragraph("Email", LABEL_STYLE), Paragraph(profile.email, BODY_STYLE)]
+                [
+                    "",
+                    Paragraph("Email", LABEL_STYLE),
+                    Paragraph(link("mailto:" + profile.email, profile.email), BODY_STYLE),
+                ]
             )
         if profile.phone:
+            if profile.whatsapp_url:
+                personal_rows.append(
+                    [
+                        _icon("whatsapp"),
+                        Paragraph("WhatsApp", LABEL_STYLE),
+                        Paragraph(link(profile.whatsapp_url, profile.phone), BODY_STYLE),
+                    ]
+                )
+            else:
+                personal_rows.append(
+                    ["", Paragraph("Phone", LABEL_STYLE), Paragraph(profile.phone, BODY_STYLE)]
+                )
+        if profile.orcid:
             personal_rows.append(
-                [Paragraph("Phone", LABEL_STYLE), Paragraph(profile.phone, BODY_STYLE)]
+                [
+                    _icon("orcid"),
+                    Paragraph("ORCID", LABEL_STYLE),
+                    Paragraph(link(profile.orcid_url, profile.orcid), BODY_STYLE),
+                ]
+            )
+        if profile.google_scholar_id:
+            personal_rows.append(
+                [
+                    _icon("scholar"),
+                    Paragraph("Google Scholar", LABEL_STYLE),
+                    Paragraph(
+                        link(profile.google_scholar_url, profile.google_scholar_id), BODY_STYLE
+                    ),
+                ]
+            )
+        if profile.linkedin_url:
+            personal_rows.append(
+                [
+                    _icon("linkedin"),
+                    Paragraph("LinkedIn", LABEL_STYLE),
+                    Paragraph(link(profile.linkedin_url, profile.linkedin_label), BODY_STYLE),
+                ]
             )
         if profile.current_position:
             personal_rows.append(
                 [
+                    "",
                     Paragraph("Position", LABEL_STYLE),
                     Paragraph(profile.current_position, BODY_STYLE),
                 ]
             )
         if profile.institution:
             personal_rows.append(
-                [Paragraph("Institution", LABEL_STYLE), Paragraph(profile.institution, BODY_STYLE)]
+                [
+                    "",
+                    Paragraph("Institution", LABEL_STYLE),
+                    Paragraph(profile.institution, BODY_STYLE),
+                ]
             )
-    personal_table = Table(personal_rows, colWidths=[3.2 * cm, 11 * cm])
+    personal_table = Table(personal_rows, colWidths=[0.55 * cm, 2.65 * cm, 11 * cm])
     personal_table.setStyle(
         TableStyle(
             [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                ("LEFTPADDING", (0, 0), (0, -1), 0),
+                ("RIGHTPADDING", (0, 0), (0, -1), 2),
             ]
         )
     )
@@ -196,6 +286,10 @@ def build_europass_cv_pdf(context: dict) -> bytes:
         for label, group in context["publications_by_type"]:
             for pub in group:
                 cite = f"{pub.authors} ({pub.year}). {pub.title}. {pub.venue}."
+                if pub.doi:
+                    cite += (
+                        f' <a href="https://doi.org/{pub.doi}" color="#003366"><u>{pub.doi}</u></a>'
+                    )
                 story.append(_row(str(pub.year), [Paragraph(cite, BODY_STYLE)]))
         story.append(Spacer(1, 8))
 
