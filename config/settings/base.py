@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "captcha",
     "apps.accounts",
     "apps.cv",
     "apps.publications",
@@ -122,6 +123,18 @@ SESSION_COOKIE_AGE = 60 * 60 * 24
 # Public pages behavior: "open" serves /p/cv/ and /p/schedule/ directly;
 # "unlisted" only serves them at the slug-based URLs.
 PUBLIC_PAGES_MODE = os.environ.get("PUBLIC_PAGES_MODE", "open")
+
+# django-simple-captcha on the login form, to slow down brute-force login
+# attempts. Self-hosted (renders its own distorted-text image, no external
+# API/network call), which fits a single-user app better than something like
+# reCAPTCHA that requires a Google site key and a call out to google.com on
+# every login page load.
+CAPTCHA_LENGTH = 5
+CAPTCHA_TIMEOUT = 5  # minutes before a challenge expires
+CAPTCHA_NOISE_FUNCTIONS = ("captcha.helpers.noise_arcs", "captcha.helpers.noise_dots")
+# CAPTCHA_TEST_MODE is turned on in config/settings/test.py so tests don't
+# have to solve a real image challenge — see that file for why it can't just
+# be set from tests/conftest.py instead.
 
 MAX_UPLOAD_SIZE_MB = 10
 

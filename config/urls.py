@@ -6,14 +6,19 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
+from apps.accounts.forms import CaptchaAuthenticationForm
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path(
         "login/",
-        auth_views.LoginView.as_view(template_name="registration/login.html"),
+        auth_views.LoginView.as_view(
+            template_name="registration/login.html", form_class=CaptchaAuthenticationForm
+        ),
         name="login",
     ),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("captcha/", include("captcha.urls")),
     path("", include("apps.dashboard.urls")),
     path("accounts/", include("apps.accounts.urls")),
     path("cv/", include("apps.cv.urls")),
