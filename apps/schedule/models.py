@@ -22,8 +22,10 @@ class Course(models.Model):
     """A course that can be taught across multiple semesters."""
 
     class Level(models.TextChoices):
+        D3 = "d3", "D3"
         S1 = "s1", "S1"
         S2 = "s2", "S2"
+        S3 = "s3", "S3"
 
     code = models.CharField(max_length=20)
     name = models.CharField(max_length=255)
