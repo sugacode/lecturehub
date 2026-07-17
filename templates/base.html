@@ -172,11 +172,15 @@
             {% endfor %}
             {% block content %}{% endblock %}
         </main>
+        {% include "_footer.html" %}
     </div>
 </div>
 {% else %}
-<main class="min-h-screen">
-    {% block public_content %}{% endblock %}
+<main class="min-h-screen flex flex-col">
+    <div class="flex-1">
+        {% block public_content %}{% endblock %}
+    </div>
+    {% include "_footer.html" %}
 </main>
 {% endif %}
 </body>
