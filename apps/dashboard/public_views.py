@@ -39,17 +39,23 @@ def _apply_noindex(response: HttpResponse) -> HttpResponse:
     return response
 
 
-def public_cv(request: HttpRequest, slug: str | None = None) -> HttpResponse:
-    """Public, unauthenticated CV page showing only is_public=True records."""
-    _check_public_access(slug)
-
+def get_cached_public_cv_context() -> dict:
+    """The is_public=True CV dataset, shared by the full public CV page and the
+    front-page landing resume so both stay consistent and share one cache entry."""
     context = cache.get("public_cv_context")
     if context is None:
         context = get_cv_context(public_only=True)
         for key in REALIZE_KEYS:
             context[key] = list(context[key])
         cache.set("public_cv_context", context, 300)
+    return context
 
+
+def public_cv(request: HttpRequest, slug: str | None = None) -> HttpResponse:
+    """Public, unauthenticated CV page showing only is_public=True records."""
+    _check_public_access(slug)
+
+    context = get_cached_public_cv_context()
     publications_by_type = context["publications_by_type"]
     years = sorted(
         {pub.year for _, group in publications_by_type for pub in group}, reverse=True
@@ -73,13 +79,13 @@ def public_cv(request: HttpRequest, slug: str | None = None) -> HttpResponse:
     return _apply_noindex(response)
 
 
-def public_schedule(request: HttpRequest, slug: str | None = None) -> HttpResponse:
-    """Public, read-only weekly calendar: public teaching assignments + public/busy events.
+def build_public_week_context() -> dict:
+    """This week's public teaching assignments + public/busy events, grouped by day.
 
-    Never renders notes, meeting URLs, or student counts.
+    Shared by the full public schedule page and the front-page landing resume, so
+    both stay in sync on what "public" means here: never notes, meeting URLs, or
+    student counts.
     """
-    _check_public_access(slug)
-
     semester = Semester.objects.filter(is_active=True).first()
     if semester:
         assignments = TeachingAssignment.objects.filter(
@@ -122,7 +128,14 @@ def public_schedule(request: HttpRequest, slug: str | None = None) -> HttpRespon
         items.sort(key=lambda item: item["start"])
         days.append({"date": day_date, "label": WEEKDAY_LABELS[i], "items": items})
 
-    response = render(
-        request, "public/schedule.html", {"days": days, "semester": semester}
-    )
+    return {"days": days, "semester": semester}
+
+
+def public_schedule(request: HttpRequest, slug: str | None = None) -> HttpResponse:
+    """Public, read-only weekly calendar: public teaching assignments + public/busy events.
+
+    Never renders notes, meeting URLs, or student counts.
+    """
+    _check_public_access(slug)
+    response = render(request, "public/schedule.html", build_public_week_context())
     return _apply_noindex(response)

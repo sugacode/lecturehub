@@ -1,0 +1,92 @@
+{% extends "public/_base.html" %}
+{% block title %}{{ profile.full_name|default:"LecturerHub" }}{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+    <nav class="sticky top-0 bg-zinc-50/95 dark:bg-zinc-950/95 backdrop-blur z-10 flex flex-wrap gap-3 py-3 mb-6 text-sm border-b border-zinc-200 dark:border-zinc-700">
+        <span class="font-semibold">LecturerHub</span>
+        <span class="flex-1"></span>
+        <button @click="$store.theme.dark = !$store.theme.dark" class="text-zinc-500 hover:text-indigo-600">Toggle dark mode</button>
+        <a href="{% url 'public:public_cv' %}" class="hover:text-indigo-600">Full CV</a>
+        <a href="{% url 'public:public_schedule' %}" class="hover:text-indigo-600">Full Schedule</a>
+    </nav>
+
+    <section class="mb-10">
+        {% include "public/_profile_header.html" %}
+    </section>
+
+    {% if publication_stats.total or grants or intellectual_properties %}
+    <section class="mb-10 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-4 text-center">
+            <div class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{{ publication_stats.total }}</div>
+            <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Publications</div>
+        </div>
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-4 text-center">
+            <div class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{{ grants|length }}</div>
+            <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Grants</div>
+        </div>
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-4 text-center">
+            <div class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{{ intellectual_properties|length }}</div>
+            <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Intellectual Property</div>
+        </div>
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-4 text-center">
+            <div class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{{ skills|length }}</div>
+            <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Skills</div>
+        </div>
+    </section>
+    {% endif %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+        <section>
+            <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Education</h2>
+            {% for edu in educations|slice:":3" %}
+            <div class="mb-3 text-sm">
+                <div class="font-medium">{{ edu.get_degree_level_display }} — {{ edu.program }}</div>
+                <div class="text-zinc-500 dark:text-zinc-400">{{ edu.institution }} · {{ edu.start_year }}–{{ edu.end_year|default:"present" }}</div>
+            </div>
+            {% empty %}
+            <p class="text-zinc-400 text-sm">No public education records.</p>
+            {% endfor %}
+        </section>
+
+        <section>
+            <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Current Positions</h2>
+            {% for position in positions|slice:":3" %}
+            <div class="mb-3 text-sm">
+                <div class="font-medium">{{ position.title }}</div>
+                <div class="text-zinc-500 dark:text-zinc-400">{{ position.organization }}</div>
+            </div>
+            {% empty %}
+            <p class="text-zinc-400 text-sm">No public position records.</p>
+            {% endfor %}
+        </section>
+    </div>
+
+    {% if publications_by_type %}
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Recent Publications</h2>
+        {% for label, group in publications_by_type %}
+        {% for pub in group|slice:":3" %}
+        <div class="mb-3 text-sm">
+            <div class="font-medium">{{ pub.title }}</div>
+            <div class="text-zinc-500 dark:text-zinc-400">{{ pub.authors }} ({{ pub.year }}). <em>{{ pub.venue }}</em>.</div>
+        </div>
+        {% endfor %}
+        {% endfor %}
+        <a href="{% url 'public:public_cv' %}#publications" class="text-sm text-indigo-600 hover:underline">View all publications →</a>
+    </section>
+    {% endif %}
+
+    <section class="mb-10">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold">This Week</h2>
+            <span class="text-sm text-zinc-500 dark:text-zinc-400">
+                {% if semester %}{{ semester.name }}{% else %}No active semester{% endif %}
+            </span>
+        </div>
+        {% include "public/_week_grid.html" %}
+        <a href="{% url 'public:public_schedule' %}" class="text-sm text-indigo-600 hover:underline mt-3 inline-block">View full schedule →</a>
+    </section>
+
+</div>
+{% endblock %}

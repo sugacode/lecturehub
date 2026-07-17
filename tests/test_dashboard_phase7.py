@@ -17,9 +17,12 @@ def make_pdf(name="doc.pdf"):
 
 
 @pytest.mark.django_db
-def test_dashboard_home_requires_login(client):
+def test_dashboard_home_shows_public_landing_for_anonymous(client):
+    """The front page is a public resume (CV highlights + this week's schedule)
+    for anonymous visitors, not a bounce to /login/ — see landing.html."""
     response = client.get(reverse("dashboard:home"))
-    assert response.status_code == 302
+    assert response.status_code == 200
+    assert b"login" not in response.content.lower()
 
 
 @pytest.mark.django_db

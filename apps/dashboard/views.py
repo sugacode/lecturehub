@@ -12,10 +12,18 @@ from apps.research.models import Deliverable, Grant
 from apps.schedule.models import Event, Semester, TeachingAssignment
 from apps.supervision.models import Milestone, Student
 
+from .public_views import build_public_week_context, get_cached_public_cv_context
 
-@login_required
+
 def home(request: HttpRequest) -> HttpResponse:
-    """Dashboard home aggregating upcoming deadlines and stats."""
+    """Front page: a public CV-and-schedule resume for visitors, the real
+    dashboard for the logged-in lecturer. Deliberately not @login_required —
+    that's what made anonymous visitors previously bounce straight to /login/
+    instead of landing on anything. There's no login link anywhere on the
+    public resume; /login/ still works, it's just not advertised."""
+    if not request.user.is_authenticated:
+        return _landing(request)
+
     today = timezone.localdate()
     week_ahead = today + datetime.timedelta(days=7)
     month_ahead = today + datetime.timedelta(days=30)
@@ -64,6 +72,15 @@ def home(request: HttpRequest) -> HttpResponse:
         "expiring_documents": expiring_documents,
     }
     return render(request, "dashboard/home.html", context)
+
+
+def _landing(request: HttpRequest) -> HttpResponse:
+    """Public resume-style front page: CV highlights + this week's public
+    schedule. Shares its data (and cache) with /p/cv/ and /p/schedule/."""
+    cv_context = get_cached_public_cv_context()
+    week_context = build_public_week_context()
+    context = {**cv_context, **week_context}
+    return render(request, "dashboard/landing.html", context)
 
 
 @login_required
