@@ -209,3 +209,19 @@ def test_cv_export_hyperlinks_external_profile_ids_and_dois(auth_client, user, s
     assert "https://scholar.google.com/citations?user=DRt8xy4AAAAJ" in uris
     assert "https://www.linkedin.com/in/janedoe" in uris
     assert "https://doi.org/10.1234/abcd.5678" in uris
+
+
+def test_flatten_publications_by_year_sorts_newest_first_across_types():
+    """Europass has no per-type headers, so publications must be one chronological
+    list; pdf_data.py groups by type first, so mixing types with different years
+    used to leave an older journal article ahead of a newer conference paper."""
+    from apps.cv.pdf_europass import _flatten_publications_by_year
+
+    older = Publication(pub_type="journal_article", title="Older Journal Paper", year=2020)
+    newer = Publication(pub_type="conference_paper", title="Newer Conference Paper", year=2024)
+    publications_by_type = [
+        ("Journal Article", [older]),
+        ("Conference Paper", [newer]),
+    ]
+    result = _flatten_publications_by_year(publications_by_type)
+    assert result == [newer, older]

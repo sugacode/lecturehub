@@ -112,6 +112,15 @@ def _row(date_text: str, content: list) -> Table:
     return table
 
 
+def _flatten_publications_by_year(publications_by_type: list) -> list:
+    """Europass lists all publications in one chronological list (no per-type
+    headers), so flatten the type groups and re-sort newest-first across the
+    whole set rather than relying on the type-then-year order pdf_data.py builds."""
+    publications = [pub for _, group in publications_by_type for pub in group]
+    publications.sort(key=lambda p: (-p.year, p.title))
+    return publications
+
+
 def build_europass_cv_pdf(context: dict) -> bytes:
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -283,14 +292,11 @@ def build_europass_cv_pdf(context: dict) -> bytes:
     if context["publications_by_type"]:
         story.append(_bar("Publications"))
         story.append(Spacer(1, 4))
-        for label, group in context["publications_by_type"]:
-            for pub in group:
-                cite = f"{pub.authors} ({pub.year}). {pub.title}. {pub.venue}."
-                if pub.doi:
-                    cite += (
-                        f' <a href="https://doi.org/{pub.doi}" color="#003366"><u>{pub.doi}</u></a>'
-                    )
-                story.append(_row(str(pub.year), [Paragraph(cite, BODY_STYLE)]))
+        for pub in _flatten_publications_by_year(context["publications_by_type"]):
+            cite = f"{pub.authors} ({pub.year}). {pub.title}. {pub.venue}."
+            if pub.doi:
+                cite += f' <a href="https://doi.org/{pub.doi}" color="#003366"><u>{pub.doi}</u></a>'
+            story.append(_row(str(pub.year), [Paragraph(cite, BODY_STYLE)]))
         story.append(Spacer(1, 8))
 
     grants = list(context["grants"])
