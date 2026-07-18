@@ -344,3 +344,22 @@ def test_public_cv_shows_public_intellectual_property(client):
     response = client.get(reverse("public:public_cv"))
     assert b"Public IP Record" in response.content
     assert b"Private IP Record" not in response.content
+
+@pytest.mark.django_db
+def test_saving_profile_invalidates_public_cv_cache(client, user):
+    client.get(reverse("public:public_cv"))
+    assert cache.get("public_cv_context") is not None
+
+    Profile.objects.create(user=user, full_name="Jane Doe")
+
+    assert cache.get("public_cv_context") is None
+
+
+@pytest.mark.django_db
+def test_landing_reflects_profile_edit_immediately(client, user):
+    """A profile save (e.g. uploading a photo) must show up on the front page
+    right away, not after the 5-minute public_cv_context cache expires."""
+    client.get(reverse("dashboard:home"))
+    Profile.objects.create(user=user, full_name="Freshly Edited Name")
+    response = client.get(reverse("dashboard:home"))
+    assert b"Freshly Edited Name" in response.content
