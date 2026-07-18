@@ -1,5 +1,22 @@
 {% extends "public/_base.html" %}
-{% block title %}{{ profile.full_name|default:"CV" }} · LecturerHub{% endblock %}
+{# Adapted from the "Curriculum Vitae" design (claude.ai/design project
+   f5968240-f78e-4813-aa61-aafc8735d720): sticky translucent nav header,
+   serif (Newsreader) section headings with an accent underline, Manrope
+   body text, pill-tagged publications, and dot-rating skill cards —
+   re-implemented with real CV data and the existing publication filter
+   controls instead of the design's mock props. #}
+{% block title %}{{ profile.full_name|default:"CV" }} · Curriculum Vitae{% endblock %}
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    /* The section nav scrolls horizontally on narrow viewports; hide its
+       scrollbar cross-browser rather than let a scrollbar thumb sit across
+       the middle of the sticky header. */
+    .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+</style>
+{% endblock %}
 {% block content %}
 <div x-data="{
         pubType: '',
@@ -11,157 +28,239 @@
                 && (this.pubIndexing === '' || this.pubIndexing === indexing);
         }
      }">
-<div class="max-w-4xl mx-auto px-4 py-8">
 
-    <nav class="sticky top-0 bg-zinc-50/95 dark:bg-zinc-950/95 backdrop-blur z-10 flex flex-wrap gap-3 py-3 mb-6 text-sm border-b border-zinc-200 dark:border-zinc-700">
-        <a href="#profile" class="hover:text-indigo-600">Profile</a>
-        <a href="#education" class="hover:text-indigo-600">Education</a>
-        <a href="#positions" class="hover:text-indigo-600">Positions</a>
-        <a href="#publications" class="hover:text-indigo-600">Publications</a>
-        <a href="#intellectual-property" class="hover:text-indigo-600">IP</a>
-        <a href="#grants" class="hover:text-indigo-600">Grants</a>
-        <a href="#service" class="hover:text-indigo-600">Service</a>
-        <a href="#achievements" class="hover:text-indigo-600">Achievements</a>
-        <a href="#skills" class="hover:text-indigo-600">Skills</a>
-        <span class="flex-1"></span>
-        <button @click="$store.theme.dark = !$store.theme.dark" class="text-zinc-500 hover:text-indigo-600">Toggle dark mode</button>
-        <a href="{% url 'cv:export' %}?style=academic{% if request.resolver_match.kwargs.slug %}&slug={{ request.resolver_match.kwargs.slug }}{% endif %}"
-           class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-3 py-1 font-medium shadow-sm transition-colors">Download PDF</a>
-    </nav>
-
-    <section id="profile" class="mb-10 scroll-mt-20">
-        {% include "public/_profile_header.html" %}
-    </section>
-
-    <section id="education" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Education</h2>
-        {% for edu in educations %}
-        <div class="mb-4">
-            <div class="flex justify-between">
-                <span class="font-medium">{{ edu.get_degree_level_display }} — {{ edu.program }}</span>
-                <span class="text-sm text-zinc-400">{{ edu.start_year }}–{{ edu.end_year|default:"present" }}</span>
-            </div>
-            <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ edu.institution }}{% if edu.country %}, {{ edu.country }}{% endif %}</div>
+    <header class="sticky top-0 z-10 flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-10 py-3.5 bg-zinc-50/90 dark:bg-zinc-950/90 backdrop-blur border-b border-zinc-200 dark:border-zinc-800">
+        <div class="flex items-baseline gap-2.5 flex-none">
+            <span style="font-family:'Newsreader',serif" class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 whitespace-nowrap">{{ profile.full_name|default:"LecturerHub" }}</span>
+            <span style="font-family:'Manrope',sans-serif" class="text-xs text-zinc-400 dark:text-zinc-500 whitespace-nowrap hidden sm:inline">Curriculum Vitae</span>
         </div>
-        {% empty %}
-        <p class="text-zinc-400 text-sm">No public education records.</p>
-        {% endfor %}
-    </section>
-
-    <section id="positions" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Positions</h2>
-        {% for position in positions %}
-        <div class="mb-4">
-            <div class="flex justify-between">
-                <span class="font-medium">{{ position.title }}</span>
-                <span class="text-sm text-zinc-400">{{ position.start_date }}–{{ position.end_date|default:"present" }}</span>
-            </div>
-            <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ position.organization }}</div>
+        <nav class="flex items-center gap-4 overflow-x-auto no-scrollbar" style="font-family:'Manrope',sans-serif">
+            <a href="#profile" class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 whitespace-nowrap">Profile</a>
+            <a href="#education" class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 whitespace-nowrap">Education</a>
+            <a href="#positions" class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 whitespace-nowrap">Positions</a>
+            <a href="#publications" class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 whitespace-nowrap">Publications</a>
+            <a href="#intellectual-property" class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 whitespace-nowrap">IP</a>
+            <a href="#grants" class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 whitespace-nowrap">Grants</a>
+            <a href="#service" class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 whitespace-nowrap">Service</a>
+            <a href="#achievements" class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 whitespace-nowrap">Achievements</a>
+            <a href="#skills" class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 whitespace-nowrap">Skills</a>
+        </nav>
+        <div class="flex items-center gap-2.5 flex-none">
+            <a href="{% url 'cv:export' %}?style=academic{% if request.resolver_match.kwargs.slug %}&slug={{ request.resolver_match.kwargs.slug }}{% endif %}"
+               style="font-family:'Manrope',sans-serif"
+               class="text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap">Download PDF</a>
+            <button @click="$store.theme.dark = !$store.theme.dark" aria-label="Toggle color mode"
+                    class="flex items-center justify-center w-8 h-8 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:border-indigo-500 hover:text-indigo-600 transition-colors flex-none">
+                <svg x-show="$store.theme.dark" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+                <svg x-show="!$store.theme.dark" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5a8.5 8.5 0 1 1-9-13 7 7 0 0 0 9 13Z"></path></svg>
+            </button>
         </div>
-        {% empty %}
-        <p class="text-zinc-400 text-sm">No public position records.</p>
-        {% endfor %}
-    </section>
+    </header>
 
-    <section id="publications" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Publications</h2>
-        <div class="flex flex-wrap gap-2 mb-4 text-sm">
-            <select x-model="pubType" class="rounded border border-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 px-2 py-1">
-                <option value="">All types</option>
-                {% for value, label in pub_type_choices %}
-                <option value="{{ value }}">{{ label }}</option>
-                {% endfor %}
-            </select>
-            <select x-model="pubYear" class="rounded border border-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 px-2 py-1">
-                <option value="">All years</option>
-                {% for year in publication_years %}
-                <option value="{{ year }}">{{ year }}</option>
-                {% endfor %}
-            </select>
-            <select x-model="pubIndexing" class="rounded border border-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 px-2 py-1">
-                <option value="">All indexing</option>
-                {% for value, label in indexing_choices %}
-                <option value="{{ value }}">{{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        {% for pub in all_publications %}
-        <div x-show="matches('{{ pub.pub_type }}', '{{ pub.year }}', '{{ pub.indexing }}')" class="mb-3 text-sm">
-            <div class="font-medium">{{ pub.title }}</div>
-            <div class="text-zinc-500 dark:text-zinc-400">
-                {{ pub.authors }} ({{ pub.year }}). <em>{{ pub.venue }}</em>.
-                {% if pub.doi %}
-                <a href="https://doi.org/{{ pub.doi }}" target="_blank" rel="noopener"
-                   class="text-indigo-600 dark:text-indigo-400 hover:underline">{{ pub.doi }}</a>
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-8 lg:py-12 flex flex-col gap-14">
+
+        <section id="profile" class="scroll-mt-20 flex gap-6 items-center flex-wrap">
+            {% if profile.photo %}
+            <img src="{{ profile.photo.url }}" alt="{{ profile.full_name }}" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover flex-none">
+            {% else %}
+            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-indigo-100 dark:bg-indigo-500/10 flex-none"></div>
+            {% endif %}
+            <div class="min-w-[260px] flex-1">
+                <h1 style="font-family:'Newsreader',serif" class="text-3xl sm:text-4xl font-semibold leading-tight text-zinc-900 dark:text-zinc-100">
+                    {{ profile.title_prefix }} {{ profile.full_name }} {{ profile.title_suffix }}
+                </h1>
+                {% if profile.current_position %}
+                <div style="font-family:'Manrope',sans-serif" class="text-[15px] font-semibold text-indigo-600 dark:text-indigo-400 mt-1.5">{{ profile.current_position }}</div>
                 {% endif %}
-                <span class="text-xs bg-zinc-100 dark:bg-zinc-700 rounded px-1.5 py-0.5 ml-1">{{ pub.get_pub_type_display }}</span>
-                {% if pub.indexing != "none" %}<span class="text-xs bg-indigo-50 dark:bg-indigo-500/10 rounded px-1.5 py-0.5 ml-1">{{ pub.get_indexing_display }}</span>{% endif %}
+                {% if profile.institution %}
+                <div style="font-family:'Manrope',sans-serif" class="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{{ profile.institution }}</div>
+                {% endif %}
+                <div class="mt-3">
+                    {% include "public/_contact_pills.html" %}
+                </div>
+                {% if profile.bio %}
+                <p style="font-family:'Newsreader',serif" class="italic text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-400 max-w-[70ch] mt-3.5">
+                    {{ profile.bio }}
+                </p>
+                {% endif %}
             </div>
-        </div>
-        {% empty %}
-        <p class="text-zinc-400 text-sm">No public publications.</p>
-        {% endfor %}
-    </section>
+        </section>
 
-    <section id="intellectual-property" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Intellectual Property</h2>
-        {% for ip in intellectual_properties %}
-        <div class="mb-3 text-sm">
-            <div class="font-medium">{{ ip.title }}</div>
-            <div class="text-zinc-500 dark:text-zinc-400">
-                {{ ip.get_ip_type_display }}{% if ip.registration_number %} — No. {{ ip.registration_number }}{% endif %}
-                ({{ ip.registration_date }})
+        <section id="education" class="scroll-mt-20">
+            <div style="font-family:'Newsreader',serif" class="inline-block text-xl font-semibold text-zinc-900 dark:text-zinc-100 pb-2 border-b-2 border-indigo-600">Education</div>
+            <div class="flex flex-col gap-4 mt-4">
+                {% for edu in educations %}
+                <div class="grid grid-cols-[110px_1fr] sm:grid-cols-[140px_1fr] gap-4">
+                    <div style="font-family:'Manrope',sans-serif" class="text-xs font-semibold text-zinc-500 dark:text-zinc-400">{{ edu.start_year }}–{{ edu.end_year|default:"present" }}</div>
+                    <div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ edu.get_degree_level_display }} — {{ edu.program }}</div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-[13px] text-zinc-500 dark:text-zinc-400 mt-0.5">{{ edu.institution }}{% if edu.country %}, {{ edu.country }}{% endif %}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-zinc-400 text-sm">No public education records.</p>
+                {% endfor %}
             </div>
+        </section>
+
+        <section id="positions" class="scroll-mt-20">
+            <div style="font-family:'Newsreader',serif" class="inline-block text-xl font-semibold text-zinc-900 dark:text-zinc-100 pb-2 border-b-2 border-indigo-600">Positions</div>
+            <div class="flex flex-col gap-4 mt-4">
+                {% for position in positions %}
+                <div class="grid grid-cols-[110px_1fr] sm:grid-cols-[140px_1fr] gap-4">
+                    <div style="font-family:'Manrope',sans-serif" class="text-xs font-semibold text-zinc-500 dark:text-zinc-400">{{ position.start_date }}–{{ position.end_date|default:"present" }}</div>
+                    <div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ position.title }}</div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-[13px] text-zinc-500 dark:text-zinc-400 mt-0.5">{{ position.organization }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-zinc-400 text-sm">No public position records.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section id="publications" class="scroll-mt-20">
+            <div style="font-family:'Newsreader',serif" class="inline-block text-xl font-semibold text-zinc-900 dark:text-zinc-100 pb-2 border-b-2 border-indigo-600">Selected Publications</div>
+            <div class="flex flex-wrap gap-2 mt-4 mb-2" style="font-family:'Manrope',sans-serif">
+                <select x-model="pubType" class="text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 px-2.5 py-1.5 text-zinc-600 dark:text-zinc-300">
+                    <option value="">All types</option>
+                    {% for value, label in pub_type_choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <select x-model="pubYear" class="text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 px-2.5 py-1.5 text-zinc-600 dark:text-zinc-300">
+                    <option value="">All years</option>
+                    {% for year in publication_years %}
+                    <option value="{{ year }}">{{ year }}</option>
+                    {% endfor %}
+                </select>
+                <select x-model="pubIndexing" class="text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 px-2.5 py-1.5 text-zinc-600 dark:text-zinc-300">
+                    <option value="">All indexing</option>
+                    {% for value, label in indexing_choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex flex-col">
+                {% for pub in all_publications %}
+                <div x-show="matches('{{ pub.pub_type }}', '{{ pub.year }}', '{{ pub.indexing }}')"
+                     class="flex flex-col gap-1 py-3.5 border-b border-zinc-100 dark:border-zinc-800">
+                    <div style="font-family:'Manrope',sans-serif" class="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug">{{ pub.title }}</div>
+                    <div style="font-family:'Newsreader',serif" class="italic text-[13px] text-zinc-500 dark:text-zinc-400">
+                        {{ pub.authors }} · <em>{{ pub.venue }}</em> · {{ pub.year }}
+                        {% if pub.doi %}
+                        · <a href="https://doi.org/{{ pub.doi }}" target="_blank" rel="noopener" class="not-italic text-indigo-600 dark:text-indigo-400 hover:underline">{{ pub.doi }}</a>
+                        {% endif %}
+                    </div>
+                    <div class="flex gap-1.5 mt-0.5" style="font-family:'Manrope',sans-serif">
+                        <span class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded-full">{{ pub.get_pub_type_display }}</span>
+                        {% if pub.indexing != "none" %}
+                        <span class="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full">{{ pub.get_indexing_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-zinc-400 text-sm">No public publications.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-14">
+            <section id="intellectual-property" class="scroll-mt-20">
+                <div style="font-family:'Newsreader',serif" class="inline-block text-xl font-semibold text-zinc-900 dark:text-zinc-100 pb-2 border-b-2 border-indigo-600">Intellectual Property</div>
+                <div class="flex flex-col gap-3.5 mt-4">
+                    {% for ip in intellectual_properties %}
+                    <div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug">{{ ip.title }}</div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            {{ ip.get_ip_type_display }}{% if ip.registration_number %} — No. {{ ip.registration_number }}{% endif %} · {{ ip.registration_date }}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-zinc-400 text-sm">No public intellectual property.</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section id="grants" class="scroll-mt-20">
+                <div style="font-family:'Newsreader',serif" class="inline-block text-xl font-semibold text-zinc-900 dark:text-zinc-100 pb-2 border-b-2 border-indigo-600">Grants</div>
+                <div class="flex flex-col gap-3.5 mt-4">
+                    {% for grant in grants %}
+                    <div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug">{{ grant.title }}</div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ grant.funder }} · {{ grant.start_date }}–{{ grant.end_date|default:"present" }}</div>
+                    </div>
+                    {% empty %}
+                    <p class="text-zinc-400 text-sm">No public grants.</p>
+                    {% endfor %}
+                </div>
+            </section>
         </div>
-        {% empty %}
-        <p class="text-zinc-400 text-sm">No public intellectual property.</p>
-        {% endfor %}
-    </section>
 
-    <section id="grants" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Grants</h2>
-        {% for grant in grants %}
-        <div class="mb-3 text-sm">
-            <div class="font-medium">{{ grant.title }}</div>
-            <div class="text-zinc-500 dark:text-zinc-400">{{ grant.funder }} — {{ grant.get_role_display }} ({{ grant.start_date }}–{{ grant.end_date|default:"present" }})</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-14">
+            <section id="service" class="scroll-mt-20">
+                <div style="font-family:'Newsreader',serif" class="inline-block text-xl font-semibold text-zinc-900 dark:text-zinc-100 pb-2 border-b-2 border-indigo-600">Service</div>
+                <div class="flex flex-col gap-3.5 mt-4">
+                    <div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug">{{ active_student_count }} thesis student(s) currently supervised</div>
+                    </div>
+                    {% for service in community_services %}
+                    <div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug">{{ service.title }}</div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ service.date }}</div>
+                    </div>
+                    {% endfor %}
+                    {% for role in organizational_roles %}
+                    <div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug">{{ role.role }}</div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ role.organization }} · {{ role.start_date }}–{{ role.end_date|default:"present" }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section id="achievements" class="scroll-mt-20">
+                <div style="font-family:'Newsreader',serif" class="inline-block text-xl font-semibold text-zinc-900 dark:text-zinc-100 pb-2 border-b-2 border-indigo-600">Achievements</div>
+                <div class="flex flex-col gap-3.5 mt-4">
+                    {% for achievement in achievements %}
+                    <div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug">{{ achievement.title }}</div>
+                        <div style="font-family:'Manrope',sans-serif" class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ achievement.issuer }} · {{ achievement.date }}</div>
+                    </div>
+                    {% empty %}
+                    <p class="text-zinc-400 text-sm">No public achievements.</p>
+                    {% endfor %}
+                </div>
+            </section>
         </div>
-        {% empty %}
-        <p class="text-zinc-400 text-sm">No public grants.</p>
-        {% endfor %}
-    </section>
 
-    <section id="service" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Service</h2>
-        <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-3">{{ active_student_count }} thesis student(s) currently supervised.</p>
-        {% for service in community_services %}
-        <div class="mb-2 text-sm"><span class="font-medium">{{ service.title }}</span> <span class="text-zinc-400">({{ service.date }})</span></div>
-        {% endfor %}
-        {% for role in organizational_roles %}
-        <div class="mb-2 text-sm"><span class="font-medium">{{ role.role }}</span>, {{ role.organization }} <span class="text-zinc-400">({{ role.start_date }}–{{ role.end_date|default:"present" }})</span></div>
-        {% endfor %}
-        {% if not community_services and not organizational_roles %}
-        <p class="text-zinc-400 text-sm">No public service records.</p>
-        {% endif %}
-    </section>
+        <section id="skills" class="scroll-mt-20">
+            <div style="font-family:'Newsreader',serif" class="inline-block text-xl font-semibold text-zinc-900 dark:text-zinc-100 pb-2 border-b-2 border-indigo-600">Skills</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-5">
+                {% regroup skills by get_category_display as skill_groups %}
+                {% for group in skill_groups %}
+                <div class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5">
+                    <div style="font-family:'Manrope',sans-serif" class="text-[11px] font-bold tracking-widest uppercase text-indigo-600 dark:text-indigo-400 mb-3.5">{{ group.grouper }}</div>
+                    <div class="flex flex-col gap-3">
+                        {% for skill in group.list %}
+                        <div>
+                            <div style="font-family:'Manrope',sans-serif" class="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100 mb-1">{{ skill.name }}</div>
+                            <div class="flex gap-1">
+                                {% for i in "12345" %}
+                                <div class="h-[5px] flex-1 rounded {% if forloop.counter <= skill.proficiency %}bg-indigo-600 dark:bg-indigo-400{% else %}bg-zinc-200 dark:bg-zinc-700{% endif %}"></div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-zinc-400 text-sm">No public skills.</p>
+                {% endfor %}
+            </div>
+        </section>
 
-    <section id="achievements" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Achievements</h2>
-        {% for achievement in achievements %}
-        <div class="mb-2 text-sm"><span class="font-medium">{{ achievement.title }}</span>, {{ achievement.issuer }} <span class="text-zinc-400">({{ achievement.date }})</span></div>
-        {% empty %}
-        <p class="text-zinc-400 text-sm">No public achievements.</p>
-        {% endfor %}
-    </section>
-
-    <section id="skills" class="mb-10 scroll-mt-20">
-        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Skills</h2>
-        {% for skill in skills %}
-        <span class="inline-block text-xs bg-zinc-100 dark:bg-zinc-700 rounded-full px-3 py-1 mr-1 mb-1">{{ skill.name }} ({{ skill.proficiency }}/5)</span>
-        {% empty %}
-        <p class="text-zinc-400 text-sm">No public skills.</p>
-        {% endfor %}
-    </section>
-
-</div>
+    </main>
 </div>
 {% endblock %}

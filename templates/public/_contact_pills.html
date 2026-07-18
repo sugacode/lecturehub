@@ -1,0 +1,22 @@
+<div class="flex gap-2 flex-wrap">
+    {% if profile.public_email %}
+    <a href="mailto:{{ profile.public_email }}" style="font-family:'Manrope',sans-serif"
+       class="text-xs font-semibold px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-indigo-500 hover:text-indigo-600 transition-colors">Email</a>
+    {% endif %}
+    {% if profile.show_phone_publicly and profile.whatsapp_url %}
+    <a href="{{ profile.whatsapp_url }}" target="_blank" rel="noopener" style="font-family:'Manrope',sans-serif"
+       class="text-xs font-semibold px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-indigo-500 hover:text-indigo-600 transition-colors">WhatsApp</a>
+    {% endif %}
+    {% if profile.orcid %}
+    <a href="{{ profile.orcid_url }}" target="_blank" rel="noopener" style="font-family:'Manrope',sans-serif"
+       class="text-xs font-semibold px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-indigo-500 hover:text-indigo-600 transition-colors">ORCID</a>
+    {% endif %}
+    {% if profile.google_scholar_id %}
+    <a href="{{ profile.google_scholar_url }}" target="_blank" rel="noopener" style="font-family:'Manrope',sans-serif"
+       class="text-xs font-semibold px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-indigo-500 hover:text-indigo-600 transition-colors">Google Scholar</a>
+    {% endif %}
+    {% if profile.linkedin_url %}
+    <a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener" style="font-family:'Manrope',sans-serif"
+       class="text-xs font-semibold px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-indigo-500 hover:text-indigo-600 transition-colors">LinkedIn</a>
+    {% endif %}
+</div>
