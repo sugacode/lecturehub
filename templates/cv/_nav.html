@@ -6,4 +6,5 @@
     <a href="{% url 'cv:training_list' %}" class="px-3 py-1.5 rounded-lg {% if active == 'training' %}bg-indigo-600 text-white{% else %}bg-white dark:bg-zinc-800{% endif %}">Training</a>
     <a href="{% url 'cv:export' %}?style=academic" target="_blank" class="px-3 py-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-700">Export PDF (Academic)</a>
     <a href="{% url 'cv:export' %}?style=europass" target="_blank" class="px-3 py-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-700">Export PDF (Europass)</a>
+    <a href="{% url 'cv:export' %}?style=elegant" target="_blank" class="px-3 py-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-700">Export PDF (Elegant)</a>
 </div>

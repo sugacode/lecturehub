@@ -18,6 +18,7 @@ from .forms import (
 from .models import Achievement, Education, Position, Skill, TrainingCertification
 from .pdf_academic import build_academic_cv_pdf
 from .pdf_data import get_cv_context
+from .pdf_elegant import build_elegant_cv_pdf
 from .pdf_europass import build_europass_cv_pdf
 
 
@@ -198,7 +199,7 @@ class TrainingCertificationDeleteView(HtmxDeleteView):
 
 
 def cv_export(request: HttpRequest) -> HttpResponse:
-    """Generate a CV PDF. ?style=academic (default) or ?style=europass.
+    """Generate a CV PDF. ?style=academic (default), europass, or elegant.
 
     Public (unauthenticated) requests only ever see is_public=True records; in
     PUBLIC_PAGES_MODE=unlisted they must also supply ?slug=<profile.public_slug>.
@@ -217,6 +218,8 @@ def cv_export(request: HttpRequest) -> HttpResponse:
     context = get_cv_context(public_only=public_only)
     if style == "europass":
         pdf_bytes = build_europass_cv_pdf(context)
+    elif style == "elegant":
+        pdf_bytes = build_elegant_cv_pdf(context)
     else:
         pdf_bytes = build_academic_cv_pdf(context)
     response = HttpResponse(pdf_bytes, content_type="application/pdf")

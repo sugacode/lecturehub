@@ -7,6 +7,7 @@ from apps.accounts.models import Profile
 from apps.cv.models import Achievement, Education, Position, Skill
 from apps.cv.pdf_academic import build_academic_cv_pdf
 from apps.cv.pdf_data import get_cv_context
+from apps.cv.pdf_elegant import build_elegant_cv_pdf
 from apps.cv.pdf_europass import build_europass_cv_pdf
 from apps.publications.models import IntellectualProperty, Publication
 from apps.research.models import Grant
@@ -33,6 +34,14 @@ def test_cv_export_academic_returns_pdf(auth_client):
 @pytest.mark.django_db
 def test_cv_export_europass_returns_pdf(auth_client):
     response = auth_client.get(reverse("cv:export"), {"style": "europass"})
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/pdf"
+    assert response.content.startswith(b"%PDF")
+
+
+@pytest.mark.django_db
+def test_cv_export_elegant_returns_pdf(auth_client):
+    response = auth_client.get(reverse("cv:export"), {"style": "elegant"})
     assert response.status_code == 200
     assert response["Content-Type"] == "application/pdf"
     assert response.content.startswith(b"%PDF")
@@ -173,6 +182,27 @@ def test_build_europass_cv_pdf_handles_no_profile():
     assert pdf_bytes.startswith(b"%PDF")
 
 
+def test_build_elegant_cv_pdf_handles_no_profile():
+    context = {
+        "profile": None,
+        "educations": [],
+        "positions": [],
+        "achievements": [],
+        "skills": [],
+        "trainings": [],
+        "publications_by_type": [],
+        "publication_stats": {"total": 0, "by_indexing": {}},
+        "intellectual_properties": [],
+        "grants": [],
+        "community_services": [],
+        "organizational_roles": [],
+        "student_count": 0,
+        "active_student_count": 0,
+    }
+    pdf_bytes = build_elegant_cv_pdf(context)
+    assert pdf_bytes.startswith(b"%PDF")
+
+
 def _uri_annotations(pdf_bytes: bytes) -> list[str]:
     import re
 
@@ -180,7 +210,7 @@ def _uri_annotations(pdf_bytes: bytes) -> list[str]:
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("style", ["academic", "europass"])
+@pytest.mark.parametrize("style", ["academic", "europass", "elegant"])
 def test_cv_export_hyperlinks_external_profile_ids_and_dois(auth_client, user, style):
     Profile.objects.create(
         user=user,
@@ -228,7 +258,7 @@ def test_flatten_publications_by_year_sorts_newest_first_across_types():
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("style", ["academic", "europass"])
+@pytest.mark.parametrize("style", ["academic", "europass", "elegant"])
 def test_cv_export_includes_intellectual_property_section(auth_client, style, tmp_path):
     import shutil
     import subprocess
