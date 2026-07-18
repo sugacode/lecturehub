@@ -1,70 +1,132 @@
 {% extends "public/_base.html" %}
-{% block title %}{{ profile.full_name|default:"LecturerHub" }}{% endblock %}
+{# Adapted from the "Lecturer Portfolio" design (claude.ai/design project
+   f5968240-f78e-4813-aa61-aafc8735d720): editorial two-column hero (serif
+   Newsreader headline + Manrope UI text) with a headshot/bio/stats column
+   and a "this week" schedule panel, re-implemented with Tailwind + real
+   profile/schedule data instead of the design's mock props. #}
+{% block title %}{{ profile.full_name|default:"LecturerHub" }} · Faculty Portfolio{% endblock %}
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{% endblock %}
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 py-8">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
 
-    <nav class="sticky top-0 bg-zinc-50/95 dark:bg-zinc-950/95 backdrop-blur z-10 flex flex-wrap gap-3 py-3 mb-6 text-sm border-b border-zinc-200 dark:border-zinc-700">
-        <span class="font-semibold">LecturerHub</span>
-        <span class="flex-1"></span>
-        <button @click="$store.theme.dark = !$store.theme.dark" class="text-zinc-500 hover:text-indigo-600">Toggle dark mode</button>
-        <a href="{% url 'public:public_cv' %}" class="hover:text-indigo-600">Full CV</a>
-        <a href="{% url 'public:public_schedule' %}" class="hover:text-indigo-600">Full Schedule</a>
-    </nav>
+    <header class="flex items-center justify-between pb-4 mb-6 lg:mb-10 border-b border-zinc-200 dark:border-zinc-800">
+        <div class="flex items-baseline gap-2.5">
+            <span style="font-family:'Newsreader',serif" class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+                {{ profile.full_name|default:"LecturerHub" }}
+            </span>
+            <span style="font-family:'Manrope',sans-serif" class="text-xs tracking-wide text-zinc-400 dark:text-zinc-500">Faculty Portfolio</span>
+        </div>
+        <button @click="$store.theme.dark = !$store.theme.dark" aria-label="Toggle color mode"
+                class="flex items-center justify-center w-9 h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:border-indigo-500 hover:text-indigo-600 transition-colors">
+            <svg x-show="$store.theme.dark" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+            <svg x-show="!$store.theme.dark" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.5a8.5 8.5 0 1 1-9-13 7 7 0 0 0 9 13Z"></path></svg>
+        </button>
+    </header>
 
-    <section class="mb-10">
-        {% include "public/_profile_header.html" %}
-    </section>
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-8 lg:gap-11">
 
-    {% if publication_stats.total or grants or intellectual_properties %}
-    <section class="mb-10 grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-4 text-center">
-            <div class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{{ publication_stats.total }}</div>
-            <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Publications</div>
-        </div>
-        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-4 text-center">
-            <div class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{{ grants|length }}</div>
-            <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Grants</div>
-        </div>
-        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-4 text-center">
-            <div class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{{ intellectual_properties|length }}</div>
-            <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Intellectual Property</div>
-        </div>
-        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-4 text-center">
-            <div class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{{ skills|length }}</div>
-            <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Skills</div>
-        </div>
-    </section>
-    {% endif %}
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-        <section>
-            <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Education</h2>
-            {% for edu in educations|slice:":3" %}
-            <div class="mb-3 text-sm">
-                <div class="font-medium">{{ edu.get_degree_level_display }} — {{ edu.program }}</div>
-                <div class="text-zinc-500 dark:text-zinc-400">{{ edu.institution }} · {{ edu.start_year }}–{{ edu.end_year|default:"present" }}</div>
+        <div class="md:col-span-2 flex flex-col justify-center gap-5">
+            <div class="flex items-center gap-4">
+                {% if profile.photo %}
+                <img src="{{ profile.photo.url }}" alt="{{ profile.full_name }}" class="w-16 h-16 rounded-full object-cover flex-none">
+                {% else %}
+                <div class="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-500/10 flex-none"></div>
+                {% endif %}
+                <div>
+                    <div style="font-family:'Manrope',sans-serif" class="text-[11px] font-bold tracking-widest uppercase text-indigo-600 dark:text-indigo-400">Lecturer Portfolio</div>
+                    <h1 style="font-family:'Newsreader',serif" class="mt-0.5 text-3xl lg:text-4xl font-semibold leading-tight text-zinc-900 dark:text-zinc-100">
+                        {{ profile.title_prefix }} {{ profile.full_name }} {{ profile.title_suffix }}
+                    </h1>
+                </div>
             </div>
-            {% empty %}
-            <p class="text-zinc-400 text-sm">No public education records.</p>
-            {% endfor %}
-        </section>
 
-        <section>
-            <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Current Positions</h2>
-            {% for position in positions|slice:":3" %}
-            <div class="mb-3 text-sm">
-                <div class="font-medium">{{ position.title }}</div>
-                <div class="text-zinc-500 dark:text-zinc-400">{{ position.organization }}</div>
+            <div>
+                {% if profile.current_position %}
+                <div style="font-family:'Manrope',sans-serif" class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ profile.current_position }}</div>
+                {% endif %}
+                {% if profile.institution %}
+                <div style="font-family:'Manrope',sans-serif" class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ profile.institution }}</div>
+                {% endif %}
             </div>
-            {% empty %}
-            <p class="text-zinc-400 text-sm">No public position records.</p>
-            {% endfor %}
-        </section>
+
+            {% if profile.bio %}
+            <p style="font-family:'Newsreader',serif" class="italic text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-400 max-w-[52ch]">
+                {{ profile.bio }}
+            </p>
+            {% endif %}
+
+            <div class="flex gap-2 flex-wrap">
+                {% if profile.public_email %}
+                <a href="mailto:{{ profile.public_email }}" style="font-family:'Manrope',sans-serif"
+                   class="text-xs font-semibold px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-indigo-500 hover:text-indigo-600 transition-colors">Email</a>
+                {% endif %}
+                {% if profile.show_phone_publicly and profile.whatsapp_url %}
+                <a href="{{ profile.whatsapp_url }}" target="_blank" rel="noopener" style="font-family:'Manrope',sans-serif"
+                   class="text-xs font-semibold px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-indigo-500 hover:text-indigo-600 transition-colors">WhatsApp</a>
+                {% endif %}
+                {% if profile.orcid %}
+                <a href="{{ profile.orcid_url }}" target="_blank" rel="noopener" style="font-family:'Manrope',sans-serif"
+                   class="text-xs font-semibold px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-indigo-500 hover:text-indigo-600 transition-colors">ORCID</a>
+                {% endif %}
+                {% if profile.google_scholar_id %}
+                <a href="{{ profile.google_scholar_url }}" target="_blank" rel="noopener" style="font-family:'Manrope',sans-serif"
+                   class="text-xs font-semibold px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-indigo-500 hover:text-indigo-600 transition-colors">Google Scholar</a>
+                {% endif %}
+                {% if profile.linkedin_url %}
+                <a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener" style="font-family:'Manrope',sans-serif"
+                   class="text-xs font-semibold px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-indigo-500 hover:text-indigo-600 transition-colors">LinkedIn</a>
+                {% endif %}
+            </div>
+
+            <div class="flex gap-2.5">
+                <a href="{% url 'public:public_cv' %}" style="font-family:'Manrope',sans-serif"
+                   class="text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-5 py-2.5 rounded-lg transition-colors">Full CV</a>
+                <a href="{% url 'public:public_schedule' %}" style="font-family:'Manrope',sans-serif"
+                   class="text-sm font-bold text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 px-5 py-2.5 rounded-lg hover:border-indigo-500 hover:text-indigo-600 transition-colors">Full Schedule</a>
+            </div>
+
+            <div class="flex gap-4 flex-wrap pt-1">
+                <div class="flex-1 min-w-[90px] pl-3.5 border-l-2 border-indigo-200 dark:border-indigo-500/30">
+                    <div style="font-family:'Newsreader',serif" class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ publication_stats.total }}</div>
+                    <div style="font-family:'Manrope',sans-serif" class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Publications</div>
+                </div>
+                <div class="flex-1 min-w-[90px] pl-3.5 border-l-2 border-indigo-200 dark:border-indigo-500/30">
+                    <div style="font-family:'Newsreader',serif" class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ grants|length }}</div>
+                    <div style="font-family:'Manrope',sans-serif" class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Grants</div>
+                </div>
+                <div class="flex-1 min-w-[90px] pl-3.5 border-l-2 border-indigo-200 dark:border-indigo-500/30">
+                    <div style="font-family:'Newsreader',serif" class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ intellectual_properties|length }}</div>
+                    <div style="font-family:'Manrope',sans-serif" class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Intellectual Property</div>
+                </div>
+                <div class="flex-1 min-w-[90px] pl-3.5 border-l-2 border-indigo-200 dark:border-indigo-500/30">
+                    <div style="font-family:'Newsreader',serif" class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ skills|length }}</div>
+                    <div style="font-family:'Manrope',sans-serif" class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Skills</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="md:col-span-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 lg:p-6">
+            <div class="flex items-baseline justify-between mb-4">
+                <div>
+                    <div style="font-family:'Newsreader',serif" class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">This Week</div>
+                    <div style="font-family:'Manrope',sans-serif" class="text-xs text-zinc-500 dark:text-zinc-400">
+                        {% if semester %}{{ semester.name }}{% else %}No active semester{% endif %}
+                    </div>
+                </div>
+                <a href="{% url 'public:public_schedule' %}" style="font-family:'Manrope',sans-serif"
+                   class="text-xs font-semibold text-indigo-600 hover:text-indigo-500">View full schedule →</a>
+            </div>
+            {% include "public/_week_grid.html" %}
+        </div>
+
     </div>
 
     {% if publications_by_type %}
-    <section class="mb-10">
-        <h2 class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Recent Publications</h2>
+    <section class="mt-10 lg:mt-14">
+        <h2 style="font-family:'Newsreader',serif" class="text-xl font-semibold border-b border-zinc-200 dark:border-zinc-700 pb-2 mb-4">Recent Publications</h2>
         {% for label, group in publications_by_type %}
         {% for pub in group|slice:":3" %}
         <div class="mb-3 text-sm">
@@ -76,17 +138,6 @@
         <a href="{% url 'public:public_cv' %}#publications" class="text-sm text-indigo-600 hover:underline">View all publications →</a>
     </section>
     {% endif %}
-
-    <section class="mb-10">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-semibold">This Week</h2>
-            <span class="text-sm text-zinc-500 dark:text-zinc-400">
-                {% if semester %}{{ semester.name }}{% else %}No active semester{% endif %}
-            </span>
-        </div>
-        {% include "public/_week_grid.html" %}
-        <a href="{% url 'public:public_schedule' %}" class="text-sm text-indigo-600 hover:underline mt-3 inline-block">View full schedule →</a>
-    </section>
 
 </div>
 {% endblock %}

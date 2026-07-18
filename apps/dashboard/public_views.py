@@ -126,7 +126,14 @@ def build_public_week_context() -> dict:
                 }
             )
         items.sort(key=lambda item: item["start"])
-        days.append({"date": day_date, "label": WEEKDAY_LABELS[i], "items": items})
+        days.append(
+            {
+                "date": day_date,
+                "label": WEEKDAY_LABELS[i],
+                "items": items,
+                "is_today": day_date == today,
+            }
+        )
 
     return {"days": days, "semester": semester}
 

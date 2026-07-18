@@ -1,6 +1,6 @@
 <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
     {% for day in days %}
-    <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-3">
+    <div class="rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-3 {% if day.is_today %}bg-indigo-50/70 dark:bg-indigo-500/10{% else %}bg-white dark:bg-zinc-800{% endif %}">
         <div class="font-semibold text-sm mb-2">{{ day.label }} <span class="text-zinc-400 font-normal">{{ day.date }}</span></div>
         <div class="space-y-2">
             {% for item in day.items %}
