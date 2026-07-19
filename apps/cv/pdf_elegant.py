@@ -35,6 +35,7 @@ SUBTEXT = colors.HexColor("#3d4252")
 BODY_INK = colors.HexColor("#33323a")
 RULE = colors.HexColor("#c9ccd4")
 TABLE_RULE = colors.HexColor("#e4e2dc")
+LINK_COLOR = "#0000FF"
 
 PROFICIENCY_LABELS = {5: "Expert", 4: "Advanced", 3: "Intermediate", 2: "Basic", 1: "Beginner"}
 CATEGORY_LABELS = {
@@ -161,23 +162,23 @@ def build_elegant_cv_pdf(context: dict) -> bytes:
         contact_lines.append(profile.institution)
     if profile and profile.email:
         contact_lines.append(
-            f'<a href="mailto:{profile.email}" color="#2a3342">{profile.email}</a>'
+            f'<a href="mailto:{profile.email}" color="{LINK_COLOR}">{profile.email}</a>'
         )
     if profile and profile.phone:
         if profile.whatsapp_url:
             contact_lines.append(
-                f'<a href="{profile.whatsapp_url}" color="#2a3342">{profile.phone}</a>'
+                f'<a href="{profile.whatsapp_url}" color="{LINK_COLOR}">{profile.phone}</a>'
             )
         else:
             contact_lines.append(profile.phone)
     link_bits = []
     if profile and profile.linkedin_url:
-        link_bits.append(f'<a href="{profile.linkedin_url}" color="#2a3342">LinkedIn</a>')
+        link_bits.append(f'<a href="{profile.linkedin_url}" color="{LINK_COLOR}">LinkedIn</a>')
     if profile and profile.orcid:
-        link_bits.append(f'<a href="{profile.orcid_url}" color="#2a3342">ORCID</a>')
+        link_bits.append(f'<a href="{profile.orcid_url}" color="{LINK_COLOR}">ORCID</a>')
     if profile and profile.google_scholar_id:
         link_bits.append(
-            f'<a href="{profile.google_scholar_url}" color="#2a3342">Google Scholar</a>'
+            f'<a href="{profile.google_scholar_url}" color="{LINK_COLOR}">Google Scholar</a>'
         )
     if link_bits:
         contact_lines.append(" &middot; ".join(link_bits))
@@ -258,7 +259,7 @@ def build_elegant_cv_pdf(context: dict) -> bytes:
                 cite += "."
                 if pub.doi:
                     doi_url = f"https://doi.org/{pub.doi}"
-                    cite += f' <a href="{doi_url}" color="#5a6072">doi:{pub.doi}</a>'
+                    cite += f' <a href="{doi_url}" color="{LINK_COLOR}">doi:{pub.doi}</a>'
                 story.append(Paragraph(f"{counter}. {cite}", PUB_STYLE))
 
     # Intellectual Property — table, on its own page.
