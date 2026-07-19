@@ -241,22 +241,6 @@ def test_cv_export_hyperlinks_external_profile_ids_and_dois(auth_client, user, s
     assert "https://doi.org/10.1234/abcd.5678" in uris
 
 
-def test_flatten_publications_by_year_sorts_newest_first_across_types():
-    """Europass has no per-type headers, so publications must be one chronological
-    list; pdf_data.py groups by type first, so mixing types with different years
-    used to leave an older journal article ahead of a newer conference paper."""
-    from apps.cv.pdf_europass import _flatten_publications_by_year
-
-    older = Publication(pub_type="journal_article", title="Older Journal Paper", year=2020)
-    newer = Publication(pub_type="conference_paper", title="Newer Conference Paper", year=2024)
-    publications_by_type = [
-        ("Journal Article", [older]),
-        ("Conference Paper", [newer]),
-    ]
-    result = _flatten_publications_by_year(publications_by_type)
-    assert result == [newer, older]
-
-
 @pytest.mark.django_db
 @pytest.mark.parametrize("style", ["academic", "europass", "elegant"])
 def test_cv_export_includes_intellectual_property_section(auth_client, style, tmp_path):
@@ -282,3 +266,105 @@ def test_cv_export_includes_intellectual_property_section(auth_client, style, tm
     ).stdout
     assert "Campus Navigation App" in text
     assert "EC00202516819" in text
+
+
+@pytest.mark.django_db
+def test_europass_pdf_groups_publications_by_type_with_restarting_numbers(auth_client, tmp_path):
+    """The Europass redesign lists each publication type with its own numbered
+    list restarting at 1 (matching the source design), unlike the Elegant
+    style's single continuously-numbered list."""
+    import shutil
+    import subprocess
+
+    if shutil.which("pdftotext") is None:
+        pytest.skip("pdftotext (poppler) not installed")
+
+    Publication.objects.create(
+        pub_type="journal_article", title="A Journal Paper", authors="X", venue="V", year=2024
+    )
+    Publication.objects.create(
+        pub_type="conference_paper", title="A Conference Paper", authors="X", venue="V", year=2023
+    )
+    response = auth_client.get(reverse("cv:export"), {"style": "europass"})
+    pdf_path = tmp_path / "cv.pdf"
+    pdf_path.write_bytes(response.content)
+    text = subprocess.run(
+        ["pdftotext", str(pdf_path), "-"], capture_output=True, text=True, check=True
+    ).stdout
+    assert "1. X (2024). A Journal Paper" in text
+    assert "1. X (2023). A Conference Paper" in text
+
+
+@pytest.mark.django_db
+def test_europass_pdf_combines_grants_and_achievements(auth_client, tmp_path):
+    import shutil
+    import subprocess
+
+    if shutil.which("pdftotext") is None:
+        pytest.skip("pdftotext (poppler) not installed")
+
+    Grant.objects.create(
+        title="A Research Grant", funder="Funder Org", start_date=datetime.date(2023, 1, 1)
+    )
+    Achievement.objects.create(
+        title="A Nice Award", issuer="Some Body", level="national", date=datetime.date(2022, 1, 1)
+    )
+    response = auth_client.get(reverse("cv:export"), {"style": "europass"})
+    pdf_path = tmp_path / "cv.pdf"
+    pdf_path.write_bytes(response.content)
+    text = subprocess.run(
+        ["pdftotext", str(pdf_path), "-"], capture_output=True, text=True, check=True
+    ).stdout
+    assert "GRANTS, SCHOLARSHIPS & AWARDS" in text
+    assert "A Research Grant" in text
+    assert "A Nice Award" in text
+
+
+@pytest.mark.django_db
+def test_europass_pdf_splits_positions_by_research_in_title(auth_client, user, tmp_path):
+    import shutil
+    import subprocess
+
+    if shutil.which("pdftotext") is None:
+        pytest.skip("pdftotext (poppler) not installed")
+
+    Profile.objects.create(user=user, full_name="Jane Doe")
+    Position.objects.create(
+        title="Principal Researcher",
+        organization="Some Org",
+        category="professional",
+        start_date=datetime.date(2020, 1, 1),
+    )
+    Position.objects.create(
+        title="Lecturer",
+        organization="Some Org",
+        category="functional",
+        start_date=datetime.date(2015, 1, 1),
+    )
+    response = auth_client.get(reverse("cv:export"), {"style": "europass"})
+    pdf_path = tmp_path / "cv.pdf"
+    pdf_path.write_bytes(response.content)
+    text = subprocess.run(
+        ["pdftotext", str(pdf_path), "-"], capture_output=True, text=True, check=True
+    ).stdout
+    assert text.index("RESEARCH EXPERIENCE") < text.index("Principal Researcher")
+    assert text.index("PROFESSIONAL EXPERIENCE") < text.index("Lecturer")
+
+
+@pytest.mark.django_db
+def test_europass_pdf_shows_language_proficiency_labels(auth_client, tmp_path):
+    import shutil
+    import subprocess
+
+    if shutil.which("pdftotext") is None:
+        pytest.skip("pdftotext (poppler) not installed")
+
+    Skill.objects.create(name="Bahasa Indonesia", category="language", proficiency=5)
+    response = auth_client.get(reverse("cv:export"), {"style": "europass"})
+    pdf_path = tmp_path / "cv.pdf"
+    pdf_path.write_bytes(response.content)
+    text = subprocess.run(
+        ["pdftotext", str(pdf_path), "-"], capture_output=True, text=True, check=True
+    ).stdout
+    assert "Bahasa Indonesia" in text
+    assert "Expert" in text
