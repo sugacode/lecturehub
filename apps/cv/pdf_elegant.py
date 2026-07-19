@@ -184,16 +184,18 @@ def build_elegant_cv_pdf(context: dict) -> bytes:
         contact_lines.append(" &middot; ".join(link_bits))
     contact_cell = [Paragraph(line, CONTACT_STYLE) for line in contact_lines]
 
-    header_row = [name_cell, contact_cell]
-    col_widths = [11.2 * cm, 6.7 * cm]
+    # The photo goes above the (right-aligned) contact block rather than to
+    # the left of the name: putting it in its own column to the left of the
+    # name pushed the name's left edge inward, so it no longer lined up with
+    # the page margin every section below the header uses.
     if profile and profile.photo:
         try:
-            photo = Image(profile.photo.path, width=2.2 * cm, height=2.2 * cm)
-            header_row = [photo, *header_row]
-            col_widths = [2.4 * cm, 8.8 * cm, 6.7 * cm]
+            photo = Image(profile.photo.path, width=2.2 * cm, height=2.2 * cm, hAlign="RIGHT")
+            contact_cell = [photo, Spacer(1, 4), *contact_cell]
         except (OSError, ValueError):
             pass
-    header_table = Table([header_row], colWidths=col_widths)
+
+    header_table = Table([[name_cell, contact_cell]], colWidths=[11.2 * cm, 6.7 * cm])
     header_table.setStyle(
         TableStyle(
             [
