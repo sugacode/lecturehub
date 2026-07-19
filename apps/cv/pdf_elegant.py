@@ -16,7 +16,7 @@ import io
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.units import cm, inch
+from reportlab.lib.units import inch
 from reportlab.platypus import (
     HRFlowable,
     Image,
@@ -191,33 +191,38 @@ def build_elegant_cv_pdf(context: dict) -> bytes:
         contact_lines.append(" &middot; ".join(link_bits))
     contact_cell = [Paragraph(line, CONTACT_STYLE) for line in contact_lines]
 
-    # The photo goes above the (right-aligned) contact block rather than to
-    # the left of the name: putting it in its own column to the left of the
-    # name pushed the name's left edge inward, so it no longer lined up with
-    # the page margin every section below the header uses.
+    # Photo left of the name, matching the source design's flex row (photo |
+    # name, flex:1 | contact, right-aligned) exactly. The earlier "not in
+    # line" bug wasn't this — a photo column to the left of the name is the
+    # design's intent, and every section below the header starts at the same
+    # left margin the photo (not the name) sits flush against. The actual bug
+    # was the column widths summing to more than the page's content width
+    # (fixed below with CONTENT_WIDTH-based fractions), which let the photo
+    # and contact block bleed past the right margin.
+    header_row = [name_cell, contact_cell]
+    col_widths = [CONTENT_WIDTH * 0.625, CONTENT_WIDTH * 0.375]
+    header_style = [
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (-1, 0), (-1, 0), "RIGHT"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+    ]
     if profile and profile.photo:
         try:
-            photo = Image(profile.photo.path, width=2.2 * cm, height=2.2 * cm, hAlign="RIGHT")
-            contact_cell = [photo, Spacer(1, 4), *contact_cell]
+            photo_width = 0.9 * inch
+            photo_gap = 0.2 * inch
+            photo = Image(profile.photo.path, width=photo_width, height=photo_width)
+            header_row = [photo, *header_row]
+            remaining = CONTENT_WIDTH - photo_width - photo_gap
+            col_widths = [photo_width + photo_gap, remaining * 0.68, remaining * 0.32]
+            header_style.append(("RIGHTPADDING", (0, 0), (0, 0), photo_gap))
         except (OSError, ValueError):
             pass
 
-    header_table = Table(
-        [[name_cell, contact_cell]],
-        colWidths=[CONTENT_WIDTH * 0.625, CONTENT_WIDTH * 0.375],
-    )
-    header_table.setStyle(
-        TableStyle(
-            [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("ALIGN", (-1, 0), (-1, 0), "RIGHT"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-            ]
-        )
-    )
+    header_table = Table([header_row], colWidths=col_widths)
+    header_table.setStyle(TableStyle(header_style))
     story.append(header_table)
     story.append(Spacer(1, 6))
     story.append(HRFlowable(width="100%", thickness=1.1, color=LABEL_INK, spaceAfter=12))
