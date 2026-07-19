@@ -17,9 +17,10 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
+from reportlab.lib.utils import ImageReader
 from reportlab.platypus import (
+    Flowable,
     HRFlowable,
-    Image,
     PageBreak,
     Paragraph,
     SimpleDocTemplate,
@@ -27,6 +28,33 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
+
+
+class CircularImage(Flowable):
+    """A headshot clipped to a circle, matching the design's round photo —
+    plain Image() flowables in ReportLab are always rectangular."""
+
+    def __init__(self, path: str, diameter: float):
+        super().__init__()
+        # Validate eagerly (as Image() does) so a missing/corrupt file raises
+        # here, where callers already catch OSError/ValueError, rather than
+        # later during doc.build().
+        self._reader = ImageReader(path)
+        self.diameter = diameter
+        self.width = diameter
+        self.height = diameter
+
+    def draw(self):
+        canv = self.canv
+        d = self.diameter
+        canv.saveState()
+        path = canv.beginPath()
+        path.circle(d / 2, d / 2, d / 2)
+        canv.clipPath(path, stroke=0)
+        canv.drawImage(
+            self._reader, 0, 0, width=d, height=d, mask="auto", preserveAspectRatio=True
+        )
+        canv.restoreState()
 
 # LETTER page, 0.85in margins each side: usable content width. Every table's
 # colWidths below must sum to exactly this — they previously summed to
@@ -200,7 +228,7 @@ def build_elegant_cv_pdf(context: dict) -> bytes:
     # (fixed below with CONTENT_WIDTH-based fractions), which let the photo
     # and contact block bleed past the right margin.
     header_row = [name_cell, contact_cell]
-    col_widths = [CONTENT_WIDTH * 0.625, CONTENT_WIDTH * 0.375]
+    col_widths = [CONTENT_WIDTH * 0.5, CONTENT_WIDTH * 0.5]
     header_style = [
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
         ("ALIGN", (-1, 0), (-1, 0), "RIGHT"),
@@ -213,10 +241,10 @@ def build_elegant_cv_pdf(context: dict) -> bytes:
         try:
             photo_width = 0.9 * inch
             photo_gap = 0.2 * inch
-            photo = Image(profile.photo.path, width=photo_width, height=photo_width)
+            photo = CircularImage(profile.photo.path, photo_width)
             header_row = [photo, *header_row]
             remaining = CONTENT_WIDTH - photo_width - photo_gap
-            col_widths = [photo_width + photo_gap, remaining * 0.68, remaining * 0.32]
+            col_widths = [photo_width + photo_gap, remaining * 0.5, remaining * 0.5]
             header_style.append(("RIGHTPADDING", (0, 0), (0, 0), photo_gap))
         except (OSError, ValueError):
             pass
@@ -279,10 +307,11 @@ def build_elegant_cv_pdf(context: dict) -> bytes:
                     cite += f' <a href="{doi_url}" color="{LINK_COLOR}">doi:{pub.doi}</a>'
                 story.append(Paragraph(f"{counter}. {cite}", PUB_STYLE))
 
-    # Intellectual Property — table, on its own page.
+    # Intellectual Property — flows on straight after Publications; a forced
+    # page break here just left a large blank gap under a short Publications
+    # list.
     intellectual_properties = list(context["intellectual_properties"])
     if intellectual_properties:
-        story.append(PageBreak())
         story.extend(_section("Intellectual Property"))
         rows = []
         for ip in intellectual_properties:
