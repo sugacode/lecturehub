@@ -28,6 +28,13 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+# LETTER page, 0.85in margins each side: usable content width. Every table's
+# colWidths below must sum to exactly this — they previously summed to
+# slightly more (were sized in cm without checking against the actual page
+# width), which pushed the right-hand column of every table (photo, contact
+# links, dates, IP metadata, skill ratings) past the right margin.
+CONTENT_WIDTH = 8.5 * inch - 2 * 0.85 * inch
+
 INK = colors.HexColor("#1c1a17")
 LABEL_INK = colors.HexColor("#2a3342")
 MUTED = colors.HexColor("#5a6072")
@@ -111,7 +118,7 @@ def _section(title: str) -> list:
 def _entry(date_text: str, title: str, subtitle: str, description: str = "") -> list:
     row = Table(
         [[Paragraph(title, ENTRY_TITLE_STYLE), Paragraph(date_text, ENTRY_DATE_STYLE)]],
-        colWidths=[13 * cm, 4.9 * cm],
+        colWidths=[CONTENT_WIDTH * 0.72, CONTENT_WIDTH * 0.28],
     )
     row.setStyle(
         TableStyle(
@@ -195,7 +202,10 @@ def build_elegant_cv_pdf(context: dict) -> bytes:
         except (OSError, ValueError):
             pass
 
-    header_table = Table([[name_cell, contact_cell]], colWidths=[11.2 * cm, 6.7 * cm])
+    header_table = Table(
+        [[name_cell, contact_cell]],
+        colWidths=[CONTENT_WIDTH * 0.625, CONTENT_WIDTH * 0.375],
+    )
     header_table.setStyle(
         TableStyle(
             [
@@ -276,7 +286,7 @@ def build_elegant_cv_pdf(context: dict) -> bytes:
                 meta += f" No. {ip.registration_number}"
             meta += f" · {ip.registration_date.year}"
             rows.append([Paragraph(ip.title, TABLE_CELL_STYLE), Paragraph(meta, TABLE_META_STYLE)])
-        ip_table = Table(rows, colWidths=[12.2 * cm, 5.9 * cm])
+        ip_table = Table(rows, colWidths=[CONTENT_WIDTH * 0.675, CONTENT_WIDTH * 0.325])
         ip_table.setStyle(
             TableStyle(
                 [
@@ -344,7 +354,8 @@ def build_elegant_cv_pdf(context: dict) -> bytes:
                 if len(pair) == 1:
                     row.extend([Paragraph("", SKILL_NAME_STYLE), Paragraph("", SKILL_RATING_STYLE)])
                 rows.append(row)
-            skills_table = Table(rows, colWidths=[6.2 * cm, 2.9 * cm, 6.2 * cm, 2.9 * cm])
+            col = CONTENT_WIDTH / 2
+            skills_table = Table(rows, colWidths=[col * 0.68, col * 0.32, col * 0.68, col * 0.32])
             skills_table.setStyle(
                 TableStyle(
                     [
