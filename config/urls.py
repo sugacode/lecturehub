@@ -7,9 +7,14 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
 from apps.accounts.forms import CaptchaAuthenticationForm
+from apps.documents.views import shared_link_redirect
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # Short, unauthenticated public redirect for SharedLink records — kept at
+    # the project root (not under /documents/ or /p/) so the shared URL stays
+    # as short as possible, e.g. dosen.example.com/s/my-cv/.
+    path("s/<slug:slug>/", shared_link_redirect, name="shared_link_redirect"),
     path(
         "login/",
         auth_views.LoginView.as_view(

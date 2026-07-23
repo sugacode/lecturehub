@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Edit{% else %}New{% endif %} shared link · LecturerHub{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">{% if object %}Edit shared link{% else %}New shared link{% endif %}</h1>
+<form method="post" class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm ring-1 ring-zinc-900/5 dark:ring-white/10 p-6 space-y-4 max-w-xl">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if object %}
+    <p class="text-sm text-zinc-500 dark:text-zinc-400">
+        Share URL: <span class="font-mono">/s/{{ object.slug }}/</span>
+    </p>
+    {% endif %}
+    <div class="flex gap-3">
+        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Save</button>
+        <a href="{% url 'documents:shared_link_list' %}" class="text-sm text-zinc-500 self-center">Cancel</a>
+    </div>
+</form>
+{% endblock %}

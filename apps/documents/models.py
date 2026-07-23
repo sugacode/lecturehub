@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from django.db import models
+from django.utils.text import slugify
 
 MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024
 
@@ -40,3 +41,40 @@ class Document(models.Model):
 
     def tag_list(self) -> list[str]:
         return [t.strip() for t in self.tags.split(",") if t.strip()]
+
+
+class SharedLink(models.Model):
+    """A custom-URL public redirect to any resource — a CV PDF, an uploaded
+    Document, or any external link — reachable at /s/<slug>/ without login,
+    the same way the public CV and Schedule pages are."""
+
+    name = models.CharField("Name of document", max_length=255)
+    original_url = models.URLField("Original URL", max_length=1000)
+    slug = models.SlugField(
+        max_length=80,
+        unique=True,
+        blank=True,
+        help_text="Custom part of the share link, e.g. 'my-cv'. Auto-generated from the "
+        "name if left blank.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return self.name
+
+    def save(self, *args, **kwargs) -> None:
+        if not self.slug:
+            self.slug = self._generate_unique_slug()
+        super().save(*args, **kwargs)
+
+    def _generate_unique_slug(self) -> str:
+        base = slugify(self.name)[:70] or "link"
+        slug = base
+        suffix = 2
+        while SharedLink.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+            slug = f"{base}-{suffix}"
+            suffix += 1
+        return slug

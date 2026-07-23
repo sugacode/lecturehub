@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
-from apps.documents.models import Document, validate_file_size
+from apps.documents.models import Document, SharedLink, validate_file_size
 
 
 def make_pdf(name="doc.pdf"):
@@ -81,3 +81,84 @@ def test_document_delete_non_htmx_redirects(auth_client):
     response = auth_client.post(reverse("documents:document_delete", args=[doc.pk]))
     assert response.status_code == 302
     assert not Document.objects.filter(pk=doc.pk).exists()
+
+
+@pytest.mark.django_db
+def test_shared_link_auto_generates_slug_from_name():
+    link = SharedLink.objects.create(name="My CV", original_url="https://example.com/cv.pdf")
+    assert link.slug == "my-cv"
+
+
+@pytest.mark.django_db
+def test_shared_link_auto_generated_slug_is_unique():
+    SharedLink.objects.create(name="My CV", original_url="https://example.com/a.pdf")
+    second = SharedLink.objects.create(name="My CV", original_url="https://example.com/b.pdf")
+    assert second.slug == "my-cv-2"
+
+
+@pytest.mark.django_db
+def test_shared_link_respects_custom_slug():
+    link = SharedLink.objects.create(
+        name="My CV", original_url="https://example.com/cv.pdf", slug="resume-2026"
+    )
+    assert link.slug == "resume-2026"
+
+
+@pytest.mark.django_db
+def test_shared_link_redirect_is_public_and_unauthenticated(client):
+    SharedLink.objects.create(
+        name="My CV", original_url="https://example.com/cv.pdf", slug="my-cv"
+    )
+    response = client.get(reverse("shared_link_redirect", args=["my-cv"]))
+    assert response.status_code == 302
+    assert response.url == "https://example.com/cv.pdf"
+
+
+@pytest.mark.django_db
+def test_shared_link_redirect_404s_for_unknown_slug(client):
+    response = client.get(reverse("shared_link_redirect", args=["does-not-exist"]))
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_shared_link_list_requires_login(client):
+    response = client.get(reverse("documents:shared_link_list"))
+    assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_shared_link_create_view_with_only_name_and_url(auth_client):
+    """The whole point: creating a share link needs just a name and a URL —
+    the slug is optional and auto-generated."""
+    response = auth_client.post(
+        reverse("documents:shared_link_create"),
+        {"name": "Weekly Schedule", "original_url": "https://example.com/schedule.pdf"},
+    )
+    assert response.status_code == 302
+    link = SharedLink.objects.get(name="Weekly Schedule")
+    assert link.slug == "weekly-schedule"
+
+
+@pytest.mark.django_db
+def test_shared_link_create_view_with_custom_slug(auth_client):
+    response = auth_client.post(
+        reverse("documents:shared_link_create"),
+        {
+            "name": "Weekly Schedule",
+            "original_url": "https://example.com/schedule.pdf",
+            "slug": "sched",
+        },
+    )
+    assert response.status_code == 302
+    assert SharedLink.objects.get(name="Weekly Schedule").slug == "sched"
+
+
+@pytest.mark.django_db
+def test_shared_link_delete_via_htmx_returns_toast_header(auth_client):
+    link = SharedLink.objects.create(name="To Delete", original_url="https://example.com/x")
+    response = auth_client.post(
+        reverse("documents:shared_link_delete", args=[link.pk]), HTTP_HX_REQUEST="true"
+    )
+    assert response.status_code == 200
+    assert "HX-Trigger" in response.headers
+    assert not SharedLink.objects.filter(pk=link.pk).exists()
