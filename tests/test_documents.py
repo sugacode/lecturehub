@@ -162,3 +162,47 @@ def test_shared_link_delete_via_htmx_returns_toast_header(auth_client):
     assert response.status_code == 200
     assert "HX-Trigger" in response.headers
     assert not SharedLink.objects.filter(pk=link.pk).exists()
+
+
+@pytest.mark.django_db
+def test_shared_link_qr_requires_login(client):
+    link = SharedLink.objects.create(name="My CV", original_url="https://example.com/cv.pdf")
+    response = client.get(reverse("documents:shared_link_qr", args=[link.pk]))
+    assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_shared_link_qr_returns_downloadable_png(auth_client):
+    link = SharedLink.objects.create(
+        name="My CV", original_url="https://example.com/cv.pdf", slug="my-cv"
+    )
+    response = auth_client.get(reverse("documents:shared_link_qr", args=[link.pk]))
+    assert response.status_code == 200
+    assert response["Content-Type"] == "image/png"
+    assert response["Content-Disposition"] == 'attachment; filename="my-cv-qr.png"'
+    assert response.content.startswith(b"\x89PNG")
+
+
+@pytest.mark.django_db
+def test_shared_link_qr_view_calls_qrcode_with_the_share_url(auth_client, monkeypatch):
+    """Scanning the QR should land on /s/<slug>/ (which then redirects), not
+    jump straight to original_url — verify the exact string handed to
+    qrcode.make() rather than round-tripping through a QR decoder, which
+    would need a new system-level dependency (zbar) just for this test."""
+    import apps.documents.views as views_module
+
+    link = SharedLink.objects.create(
+        name="My CV", original_url="https://example.com/cv.pdf", slug="my-cv"
+    )
+    captured = {}
+    original_make = views_module.qrcode.make
+
+    def spy_make(data):
+        captured["data"] = data
+        return original_make(data)
+
+    monkeypatch.setattr(views_module.qrcode, "make", spy_make)
+    response = auth_client.get(reverse("documents:shared_link_qr", args=[link.pk]))
+    assert response.status_code == 200
+    assert captured["data"].endswith("/s/my-cv/")
+    assert "example.com" not in captured["data"]

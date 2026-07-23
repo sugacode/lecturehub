@@ -17,4 +17,5 @@ urlpatterns = [
     path(
         "links/<int:pk>/delete/", views.SharedLinkDeleteView.as_view(), name="shared_link_delete"
     ),
+    path("links/<int:pk>/qr/", views.shared_link_qr_code, name="shared_link_qr"),
 ]

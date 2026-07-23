@@ -35,6 +35,7 @@
                 </td>
                 <td class="px-4 py-2 max-w-xs truncate text-zinc-500 dark:text-zinc-400">{{ link.original_url }}</td>
                 <td class="px-4 py-2 text-right space-x-2">
+                    <a href="{% url 'documents:shared_link_qr' link.pk %}" class="text-zinc-500 hover:text-indigo-600">Download QR</a>
                     <a href="{% url 'documents:shared_link_update' link.pk %}" class="text-zinc-500 hover:text-indigo-600">Edit</a>
                     <button
                         hx-post="{% url 'documents:shared_link_delete' link.pk %}"

@@ -1,9 +1,13 @@
+import io
+
+import qrcode
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from apps.common.htmx import htmx_row_deleted
@@ -128,3 +132,17 @@ def shared_link_redirect(request: HttpRequest, slug: str) -> HttpResponse:
     """Public, unauthenticated redirect: /s/<slug>/ -> the link's original_url."""
     link = get_object_or_404(SharedLink, slug=slug)
     return HttpResponseRedirect(link.original_url)
+
+
+@login_required
+def shared_link_qr_code(request: HttpRequest, pk: int) -> HttpResponse:
+    """Downloadable PNG QR code encoding the share URL (not original_url) —
+    scanning it goes through the same /s/<slug>/ redirect a pasted link would."""
+    link = get_object_or_404(SharedLink, pk=pk)
+    share_url = request.build_absolute_uri(reverse("shared_link_redirect", args=[link.slug]))
+    image = qrcode.make(share_url)
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    response = HttpResponse(buffer.getvalue(), content_type="image/png")
+    response["Content-Disposition"] = f'attachment; filename="{link.slug}-qr.png"'
+    return response
